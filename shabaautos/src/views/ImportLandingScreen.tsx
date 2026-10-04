@@ -205,7 +205,7 @@ export const ImportLandingScreen: React.FC<ImportLandingScreenProps> = ({ onNavi
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] shaba-screen">
+    <div className="min-h-screen bg-[#f8f9fa] shaba-screen import-screen">
       <section className="relative overflow-hidden bg-gradient-to-b from-[#eef3f0] to-[#f4f7f5] pt-6 sm:pt-14 lg:pt-16 pb-9 sm:pb-20 border-b border-slate-200/80">
         <div className="absolute inset-0 z-0 opacity-15 pointer-events-none">
           <img src="https://images.unsplash.com/photo-1506146332389-18140dc7b2fb?auto=format&fit=crop&w=2000&q=85" alt="Port skyline" className="w-full h-full object-cover object-center mix-blend-multiply" />

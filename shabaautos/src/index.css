@@ -1223,3 +1223,42 @@ html.dark { color-scheme: dark; }
   65.5% { transform: rotate(0deg) scale(1); }
   100% { transform: rotate(0deg) scale(1); }
 }
+.dark .import-screen .from-\[\#eef3f0\], .dark .rent-screen .from-\[\#eef3f0\] {
+  --tw-gradient-from: #0f1613 !important;
+}
+.dark .import-screen .to-\[\#f4f7f5\], .dark .rent-screen .to-\[\#f4f7f5\] {
+  --tw-gradient-to: #0f1613 !important;
+}
+.dark .import-screen .via-\[\#f4f7f5\], .dark .rent-screen .via-\[\#f4f7f5\] {
+  --tw-gradient-via: #0f1613 !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-via), var(--tw-gradient-to) !important;
+}
+.dark .import-screen .via-\[\#f4f7f5\]\/90,
+.dark .rent-screen .via-\[\#f4f7f5\]\/80 {
+  --tw-gradient-via: rgba(15, 22, 19, 0.9) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-via), var(--tw-gradient-to) !important;
+}
+
+@media (max-width: 639px) {
+  .dark .rent-screen .rent-mobile-intro h1 { color: #eef4ef; }
+  .dark .rent-screen .rent-mobile-intro > small { color: #9daba3; }
+  .dark .rent-screen .rent-mobile-topbar strong { color: #eef4ef; }
+  .dark .rent-screen .rent-mobile-section-head h2,
+  .dark .rent-screen .rent-mobile-inventory-head h2 { color: #eef4ef; }
+  .dark .rent-screen .rent-mobile-categories button {
+    background: #131a16;
+    border-color: #2a3730;
+    color: #9daba3;
+  }
+  .dark .rent-screen .rent-mobile-categories button.is-active {
+    background: #0e7c3a;
+    border-color: #0e7c3a;
+    color: #ffffff;
+  }
+  .dark .rent-screen .rent-mobile-car-body h3 { color: #eef4ef; }
+  .dark .rent-screen .rent-mobile-car-body p { color: #9daba3; }
+  .dark .rent-screen .rent-mobile-car-footer span { color: #9daba3; }
+  .dark .rent-screen .rent-mobile-trust strong { color: #eef4ef; }
+  .dark .rent-screen .rent-mobile-trust small { color: #9daba3; }
+  .dark .rent-screen .rent-mobile-inventory-head > span { color: #9daba3; }
+}
