@@ -9,9 +9,13 @@ export interface BusinessContact {
 
 const empty: BusinessContact = { phone: '', email: '', address: '' };
 
+// Optimistic first-paint fallback (published support number seen in live CMS): the blob appears instantly,
+// before the async settings fetch resolves; the live setting overwrites it as soon as it arrives.
+const FALLBACK_SUPPORT_PHONE = '+2347013321033';
+
 /** Contact details are absent until an administrator has verified and published them in CMS. */
 export function useBusinessContact(): BusinessContact {
-  const [contact, setContact] = useState<BusinessContact>(empty);
+  const [contact, setContact] = useState<BusinessContact>({ ...empty, phone: FALLBACK_SUPPORT_PHONE });
   useEffect(() => {
     let active = true;
     fetchPublicSettings().then((settings) => {

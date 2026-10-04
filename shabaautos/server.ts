@@ -2678,33 +2678,113 @@ app.get('/api/external/car-lookup', async (req: Request, res: Response) => {
     return res.json({ success: true, cached: true, data: cached });
   }
 
-  try {
-    const wikiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(searchTerm)}`;
-    const response = await fetch(wikiUrl, {
-      headers: { 'User-Agent': 'ShabaAutos/2.0 (automotive marketplace info)' },
-      signal: AbortSignal.timeout(5000),
-    });
+  // Normalized core term: drop years/trims/numbers so "Mercedes-Benz GLE 450" retries as "Mercedes-Benz GLE"
+  const normalizeTerm = (raw: string): string =>
+    raw
+      .trim()
+      .replace(/\b(19|20)\d{2}\b/g, '')   // model years
+      .replace(/\b\d{2,4}\b/g, '')         // trims like 350, 450, X5 (X5s kept via letters)
+      .replace(/\b(4WD|AWD|4x4|FWD|RWD|TDI|TSI|AMG|M Sport|Sport|Luxury|Premium|Base|LE|SE|XLE|Limited|Platinum)\b/gi, '')
+      .replace(/\s+/g, ' ').trim();
 
-    if (response.ok) {
-      const data = (await response.json()) as any;
-      const result = {
-        searchTerm,
-        title: data.title || searchTerm,
-        description: data.extract || `${searchTerm} overview and specifications.`,
-        imageUrl: data.originalimage?.source || data.thumbnail?.source,
-        pageUrl: data.content_urls?.desktop?.page,
-        verifiedSource: 'Wikimedia Open Automotive Encyclopedia',
-      };
+  // Core name keeps letters-and-dashes words: "Mercedes-Benz GLE 450" -> "Mercedes-Benz GLE"
+  const coreTerm = (normalizeTerm(searchTerm). match(/[A-Za-z][A-Za-z&\-\.]*/g) || []).join(' ').trim() || normalizeTerm(searchTerm);
 
-      await dbService.cache.set(cacheKey, 'wikimedia', result, 604800, wikiUrl);
-      return res.json({ success: true, cached: false, data: result });
+  const SUMMARY_TIMEOUT =5000;
+
+  async function fetchWikiSummary(term: string): Promise<any | null> {
+    try {
+      const res = await fetch(
+        `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(term)}`,
+        { headers: { 'User-Agent': 'ShabaAutos/2.0 (automotive marketplace info)' }, signal: AbortSignal.timeout(SUMMARY_TIMEOUT) },
+      );
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data && typeof data === 'object' ? data : null;
+    } catch {
+      return null;
     }
-    throw new Error('Wikipedia page summary not found');
-  } catch (err: any) {
-    res.status(502).json({ success: false, code: 'PROVIDER_UNAVAILABLE', message: 'Reference vehicle information is temporarily unavailable.' });
   }
-});
 
+  // Commons media search: returns a genuine image URL for the term (or null)
+  async function findCommonsImage(term: string): Promise<string | null> {
+    try {
+      const url = new URL('https://commons.wikimedia.org/w/api.php');
+      url.search = new URLSearchParams({
+        action: 'query',
+        generator: 'search',
+        gsrsearch: `${term} automobile`,
+        gsrnamespace: '6',
+        gsrlimit: '8',
+        prop: 'imageinfo',
+        iiprop: 'url',
+        iiurlwidth: '1200',
+        format: 'json',
+      }).toString();
+      const res = await fetch(url.toString(), {
+        headers: { 'User-Agent': 'ShabaAutos/2.0 (automotive marketplace info)' },
+        signal: AbortSignal.timeout(SUMMARY_TIMEOUT),
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      const pages = data?.query?.pages;
+      if (!pages) return null;
+      const candidates = Object.keys(pages)
+        .map((id) => pages[id])
+        .filter((p: any) => p?.imageinfo?.length && p.title && !/\.(svg|tif|tiff|pdf)$/i.test(p.title))
+        .map((p: any) => p.imageinfo[0].thumburl || p.imageinfo[0].url)
+        .filter((u: string) => Boolean(u));
+      return candidates[0] || null;
+    } catch {
+      return null;
+    }
+  }
+
+  // 1) Try the exact term, then 2) the normalized core term
+  let summary = null;
+  let usedTerm = '';
+  const attemptTerms = [searchTerm, coreTerm, coreTerm.replace(/\s+[A-Za-z]+$/,'')];
+  for (const attempt of attemptTerms) {
+    summary = await fetchWikiSummary(attempt);
+    if (summary) {
+      usedTerm = attempt;
+      break;
+    }
+  }
+
+  if (!summary) {
+    return res.status(404).json({
+      success: false,
+      message: 'Vehicle not found in the free automotive encyclopedia. Try a simpler name like "Toyota Camry".',
+    });
+  }
+
+  let imageUrl: string | null = summary.originalimage?.source || summary.thumbnail?.source || null;
+  let description = summary.extract || `${summary.title || usedTerm} overviewand specifications.`;
+  const title = summary.title || usedTerm;
+  const pageUrl = summary.content_urls?.desktop?.page;
+
+  // 3) If no hero photo came from the article, pull one from Commons media search
+  if (!imageUrl) {
+    imageUrl = await findCommonsImage(usedTerm || title);
+  }
+
+  if (!imageUrl) {
+    imageUrl = await findCommonsImage(coreTerm || title);
+  }
+
+  const result = {
+    searchTerm,
+    title,
+    description,
+    imageUrl,
+    pageUrl,
+    verifiedSource: 'Wikimedia Open Automotive Encyclopedia',
+  };
+
+  await dbService.cache.set(cacheKey, 'wikimedia', result, 604800, pageUrl || '');
+  return res.json({ success: true, cached: false, data: result });
+});
 // -------------------------------------------------------------
 // Vite Middleware / Production Static Handling
 // -------------------------------------------------------------
