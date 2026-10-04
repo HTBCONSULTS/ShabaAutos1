@@ -1370,3 +1370,18 @@ html.dark { color-scheme: dark; }
 .dark .border-red-200 {
   border-color: rgba(252, 165, 165, 0.32) !important;
 }
+
+/* Desktop navigation: seat the brand mark against the top edge of the bar
+   so the apex of the mark meets the header instead of floating in the middle. */
+.shabaautos-navbar .shabaautos-brand {
+  align-self: stretch;
+  display: flex;
+  align-items: flex-start;
+}
+.shabaautos-navbar .shaba-logo {
+  align-self: flex-start;
+  margin-top: 0;
+}
+.shabaautos-navbar .shaba-logo-img {
+  height: 4.5rem;
+}
