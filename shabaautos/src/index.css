@@ -1380,10 +1380,10 @@ html.dark { color-scheme: dark; }
 }
 .shabaautos-navbar .shaba-logo {
   align-self: flex-start;
-  margin-top: 0;
+  margin-top: 7px;
 }
 .shabaautos-navbar .shaba-logo-img {
-  height: 4.5rem;
+  height: 4.25rem;
 }
 
 /* Between 1280px and 1439px the full desktop nav used to overflow its
