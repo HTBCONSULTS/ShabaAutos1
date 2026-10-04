@@ -179,6 +179,28 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
 }
 
 /**
+ * Express middleware that identifies the caller when a valid session is present
+ * but never rejects the request. Used for endpoints that are safe to serve
+ * publicly - for example order tracking by an unguessable reference - while
+ * still letting signed-in owners and staff be recognised.
+ */
+export async function optionalAuth(req: Request, _res: Response, next: NextFunction) {
+  try {
+    const user = await getAuthenticatedClerkUser(req);
+    if (user) {
+      req.user = user;
+      req.auth = {
+        userId: user.clerkId,
+        role: user.role,
+      };
+    }
+  } catch {
+    // A missing, expired or malformed token must not block a public lookup.
+  }
+  next();
+}
+
+/**
  * Express middleware checking user role authorization.
  * Rejects unauthorized roles with HTTP 403.
  */

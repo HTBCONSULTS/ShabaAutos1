@@ -301,9 +301,9 @@ export const OrderTrackingScreen: React.FC<OrderTrackingScreenProps> = ({ onNavi
   };
 
   useEffect(() => {
-    if (!isLoaded || !isSignedIn || ordersLoading || ordersError || initialLookupDone.current) return;
+    if (!isLoaded || ordersLoading || ordersError || initialLookupDone.current) return;
     const linkedId = new URLSearchParams(window.location.search).get('trackingId');
-    const suggestedId = linkedId || (orders.length === 1 ? orders[0].trackingId : '');
+    const suggestedId = linkedId || (isSignedIn && orders.length === 1 ? orders[0].trackingId : '');
     if (!suggestedId) return;
     initialLookupDone.current = true;
     void handleLookup(suggestedId);
@@ -329,33 +329,6 @@ export const OrderTrackingScreen: React.FC<OrderTrackingScreenProps> = ({ onNavi
     );
   }
 
-  if (!isSignedIn) {
-    return (
-      <div className="min-h-screen bg-[#f8f9fa] flex items-center justify-center p-6">
-        <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-800">
-            <LockKeyhole className="h-7 w-7" />
-          </div>
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Private order tracking</p>
-          <h1 className="mt-2 text-2xl font-black text-slate-950">Sign in to track your import</h1>
-          <p className="mt-3 text-sm leading-6 text-slate-600">
-            Tracking is available to the account that submitted the import request. Sign in to see your requests and their recorded progress.
-          </p>
-          <button
-            type="button"
-            onClick={() => onNavigate('auth')}
-            className="mt-7 w-full rounded-xl bg-[#0a502c] px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-800"
-          >
-            Sign in / create account
-          </button>
-          <button type="button" onClick={() => onNavigate('home')} className="mt-4 text-sm font-semibold text-slate-500 hover:text-slate-900">
-            Return home
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-[#f8f9fa] py-6 sm:py-10">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -367,7 +340,7 @@ export const OrderTrackingScreen: React.FC<OrderTrackingScreenProps> = ({ onNavi
             <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Import tracking</p>
             <h1 className="mt-1 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">Follow your request</h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-              Select one of your import requests or enter its tracking ID. Updates below reflect records currently available in your account.
+              Enter the tracking ID from your request confirmation to follow its progress. Signed-in customers also see every request linked to their account.
             </p>
           </div>
           <button type="button" onClick={() => onNavigate('import-form')} className="rounded-xl border border-emerald-200 bg-white px-4 py-2.5 text-sm font-bold text-emerald-800 shadow-sm hover:bg-emerald-50">
@@ -386,8 +359,23 @@ export const OrderTrackingScreen: React.FC<OrderTrackingScreenProps> = ({ onNavi
               {!ordersLoading && !ordersError && orders.length === 0 && (
                 <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-center">
                   <Package className="mx-auto h-6 w-6 text-slate-400" />
-                  <p className="mt-2 text-xs font-bold text-slate-700">No active import requests</p>
-                  <p className="mt-1 text-[11px] leading-5 text-slate-500">Requests linked to this account will appear here.</p>
+                  <p className="mt-2 text-xs font-bold text-slate-700">
+                    {isSignedIn ? 'No active import requests' : 'Track with your tracking ID'}
+                  </p>
+                  <p className="mt-1 text-[11px] leading-5 text-slate-500">
+                    {isSignedIn
+                      ? 'Requests linked to this account will appear here.'
+                      : 'Enter the tracking ID from your confirmation to see its recorded status. Sign in to keep all of your requests in one place.'}
+                  </p>
+                  {!isSignedIn && (
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('auth')}
+                      className="mt-3 text-[11px] font-bold text-emerald-800 underline underline-offset-2"
+                    >
+                      Sign in / create account
+                    </button>
+                  )}
                 </div>
               )}
               <div className="space-y-2">
@@ -449,7 +437,7 @@ export const OrderTrackingScreen: React.FC<OrderTrackingScreenProps> = ({ onNavi
               )}
             </section>
 
-            {!currentOrder && !lookupMessage && <p className="text-xs text-slate-500">Your tracking ID is in the request confirmation. Only updates recorded for your account appear here.</p>}
+            {!currentOrder && !lookupMessage && <p className="text-xs text-slate-500">Your tracking ID is in the request confirmation email or on the confirmation screen. Enter it above to see the latest status recorded by our team.</p>}
 
             {!currentOrder && !isSearching && !lookupMessage && (
               <section className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center shadow-sm sm:p-12">

@@ -1252,8 +1252,10 @@ export class PostgresImportRepository implements IImportRepository {
 
   async updateStatus(id: string, status: ImportRequest['status']): Promise<ImportRequest | null> {
     const now = new Date().toISOString();
+    // Staff tools address an import by its customer-facing tracking ID while the
+    // table is keyed on the internal id, so match either before updating.
     const res = await this.pool.query(
-      'UPDATE import_requests SET status = $1, updated_at = $2 WHERE id = $3 RETURNING *',
+      'UPDATE import_requests SET status = $1, updated_at = $2 WHERE id = $3 OR UPPER(tracking_id) = UPPER($3) RETURNING *',
       [status, now, id]
     );
     return res.rows[0] ? this.mapImport(res.rows[0]) : null;

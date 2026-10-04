@@ -1183,8 +1183,12 @@ export class SqliteImportRepository implements IImportRepository {
 
   async updateStatus(id: string, status: ImportRequest['status']): Promise<ImportRequest | null> {
     const now = new Date().toISOString();
-    this.db.prepare('UPDATE import_requests SET status = ?, updated_at = ? WHERE id = ?').run(status, now, id);
-    return this.findRequestById(id);
+    // Staff tools address an import by its customer-facing tracking ID while the
+    // table is keyed on the internal id, so resolve either before updating.
+    const existing = (await this.findRequestById(id)) ?? (await this.findByTrackingId(id));
+    if (!existing) return null;
+    this.db.prepare('UPDATE import_requests SET status = ?, updated_at = ? WHERE id = ?').run(status, now, existing.id);
+    return this.findRequestById(existing.id);
   }
 
   async saveCostEstimate(estimate: Omit<ImportCostEstimate, 'id' | 'createdAt'>): Promise<ImportCostEstimate> {

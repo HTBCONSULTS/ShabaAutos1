@@ -7,7 +7,12 @@ import { createServer as createViteServer } from 'vite';
 import { getDatabaseService, getDatabaseType, getDatabaseReady } from './server/database/index';
 import { seedDatabase, hashPassword } from './server/scripts/seed';
 import crypto from 'node:crypto';
-import { requireAuth, requireRole, getAuthenticatedClerkUser } from './server/middleware/auth';
+import {
+  requireAuth,
+  requireRole,
+  getAuthenticatedClerkUser,
+  optionalAuth,
+} from './server/middleware/auth';
 import { handleClerkWebhook } from './server/routes/webhooks';
 import { normalizeNigerianPhone } from './server/utils/phone';
 import opsRouter from './server/routes/cms';
@@ -1685,10 +1690,19 @@ app.post('/api/imports/request', requireAuth, async (req: Request, res: Response
   }
 });
 
+/** Public tracking must not disclose the customer's full identity. */
+function maskCustomerName(name?: string | null): string | null {
+  if (!name) return null;
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return null;
+  if (parts.length === 1) return parts[0];
+  return `${parts[0]} ${parts[parts.length - 1].charAt(0).toUpperCase()}.`;
+}
+
 // -------------------------------------------------------------
 // 9. Order & Container Tracking (No Fabricated Facts)
 // -------------------------------------------------------------
-app.get('/api/tracking/:trackingId', requireAuth, async (req: Request, res: Response) => {
+app.get('/api/tracking/:trackingId', optionalAuth, async (req: Request, res: Response) => {
   try {
     const query = req.params.trackingId.toUpperCase().trim();
     let order = await dbService.imports.findByTrackingId(query);
@@ -1706,9 +1720,12 @@ app.get('/api/tracking/:trackingId', requireAuth, async (req: Request, res: Resp
       });
     }
 
-    if (order.userId !== req.user!.id && req.user!.role !== 'admin' && req.user!.role !== 'staff') {
-      return res.status(404).json({ success: false, found: false, code: 'TRACKING_NOT_FOUND', message: 'No order was found for this account.' });
-    }
+    // Tracking works with the reference alone, the same way a courier number does.
+    // Signed-in owners and staff are recognised so they can be shown the full record;
+    // everyone else sees the shipment status with the customer identity masked.
+    const requesterIsOwner = Boolean(req.user && order.userId && order.userId === req.user.id);
+    const requesterIsStaff = req.user?.role === 'admin' || req.user?.role === 'staff';
+    const maySeeIdentity = requesterIsOwner || requesterIsStaff;
 
     const milestones = await dbService.imports.getMilestones(order.trackingId);
     const events = await dbService.imports.getTrackingEvents(order.trackingId);
@@ -1730,7 +1747,7 @@ app.get('/api/tracking/:trackingId', requireAuth, async (req: Request, res: Resp
       data: {
         orderId: order.trackingId,
         status: order.status,
-        customerName: order.customerName,
+        customerName: maySeeIdentity ? order.customerName : maskCustomerName(order.customerName),
         originPort: order.originPort,
         destinationPort: order.destinationPort,
         // Honest nulls instead of invented facts: real vessel/container data is
@@ -2143,7 +2160,10 @@ app.patch('/api/ops/imports/:trackingId', requireAuth, requireRole(['staff', 'ad
     if (!status) return res.status(400).json({ success: false, message: 'Invalid or missing status' });
     const current = await dbService.imports.findByTrackingId(req.params.trackingId);
     if (!current) return res.status(404).json({ success: false, message: 'Order not found.' });
-    await dbService.imports.updateStatus(req.params.trackingId, status);
+    const updated = await dbService.imports.updateStatus(req.params.trackingId, status);
+    if (!updated) {
+      return res.status(500).json({ success: false, message: 'The import status could not be saved. Please try again.' });
+    }
     await dbService.statusHistory.record({
       resourceType: 'import',
       resourceId: req.params.trackingId,
