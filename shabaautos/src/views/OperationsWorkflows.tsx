@@ -84,7 +84,7 @@ const idFor = (kind: OperationsQueue, record: QueueRecord): string => firstText(
 const customerFor = (kind: OperationsQueue, record: QueueRecord): string => firstText(record, kind === 'sell' ? ['sellerName', 'name'] : kind === 'concierge' ? ['fullName', 'customerName'] : ['customerName', 'fullName', 'name']) || 'Unnamed customer';
 const contactFor = (record: QueueRecord): string => firstText(record, ['phone', 'email']) || 'No contact recorded';
 const vehicleFor = (kind: OperationsQueue, record: QueueRecord): string => {
-  if (kind === 'rentals') return firstText(record, ['carName', 'vehicleName']) || 'Rental vehicle not recorded';
+  if (kind === 'rentals') return rentalSummary(record) || 'Rental vehicle not recorded';
   const make = firstText(record, ['make', 'desiredMake']);
   const model = firstText(record, ['model', 'desiredModel']);
   const year = firstText(record, ['year', 'yearRange']);
@@ -104,6 +104,23 @@ const statusOptionsFor = (kind: OperationsQueue): readonly string[] => {
   if (kind === 'concierge') return CONCIERGE_STATUSES;
   if (kind === 'imports') return IMPORT_STATUSES;
   return RENTAL_STATUSES;
+};
+
+const TYPE_META: Record<OperationsQueue, { label: string; badgeClass: string; dotClass: string }> = {
+  sell: { label: 'Sell', badgeClass: 'bg-orange-100 text-orange-800 border-orange-200', dotClass: 'bg-orange-500' },
+  concierge: { label: 'Find a Car', badgeClass: 'bg-blue-100 text-blue-800 border-blue-200', dotClass: 'bg-blue-500' },
+  imports: { label: 'Import', badgeClass: 'bg-purple-100 text-purple-800 border-purple-200', dotClass: 'bg-purple-500' },
+  rentals: { label: 'Rent', badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200', dotClass: 'bg-emerald-500' },
+};
+const typeMetaFor = (kind: OperationsQueue): { label: string; badgeClass: string; dotClass: string } => TYPE_META[kind] ?? TYPE_META.sell;
+
+const rentalSummary = (record: QueueRecord): string => {
+  const car = firstText(record, ['carName', 'vehicleName', 'vehicle']);
+  const pickup = firstText(record, ['pickupDate', 'startDate', 'start']);
+  const dropoff = firstText(record, ['dropoffDate', 'endDate', 'end']);
+  const location = firstText(record, ['pickupLocation', 'location', 'city']);
+  const parts = [car && `Car: ${car}`, location && `Pickup: ${location}`, pickup && `From: ${formatDate(pickup)}`, dropoff && `To: ${formatDate(dropoff)}`].filter(Boolean);
+  return parts.join(' • ');
 };
 
 const EmptyState: React.FC<{ title: string; detail: string }> = ({ title, detail }) => (
@@ -322,7 +339,7 @@ export const OperationsWorkflows: React.FC<OperationsWorkflowsProps> = ({ sectio
           <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
             <div className="overflow-x-auto">
               <table className="min-w-[980px] w-full text-left text-sm">
-                <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-4 py-3 font-semibold">Customer / contact</th><th className="px-4 py-3 font-semibold">Vehicle / request</th><th className="px-4 py-3 font-semibold">Reference</th><th className="px-4 py-3 font-semibold">Status</th><th className="px-4 py-3 font-semibold">Date</th><th className="px-4 py-3 font-semibold">Action / evidence</th></tr></thead>
+                <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-4 py-3 font-semibold">Type</th><th className="px-4 py-3 font-semibold">Customer / contact</th><th className="px-4 py-3 font-semibold">Vehicle / request</th><th className="px-4 py-3 font-semibold">Reference</th><th className="px-4 py-3 font-semibold">Status</th><th className="px-4 py-3 font-semibold">Date</th><th className="px-4 py-3 font-semibold">Action / evidence</th></tr></thead>
                 <tbody className="divide-y divide-slate-100">
                   {filteredQueue.map((record, index) => {
                     const id = idFor(kind, record) || `record-${index}`;
@@ -330,6 +347,7 @@ export const OperationsWorkflows: React.FC<OperationsWorkflowsProps> = ({ sectio
                     const note = notes[id] || '';
                     const canEdit = !(kind === 'sell' && role !== 'admin');
                     return <Fragment key={id}><tr className="align-top hover:bg-slate-50/70">
+                      <td className="px-4 py-4"><span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-wide ${typeMetaFor(kind).badgeClass}`}><span className={`h-1.5 w-1.5 rounded-full ${typeMetaFor(kind).dotClass}`} />{typeMetaFor(kind).label}</span></td>
                       <td className="px-4 py-4"><div className="flex items-start gap-2"><UserRound className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" /><div><div className="font-semibold text-slate-800">{customerFor(kind, record)}</div><div className="mt-1 text-xs text-slate-500">{contactFor(record)}</div></div></div></td>
                       <td className="px-4 py-4 text-slate-700">{vehicleFor(kind, record)}</td>
                       <td className="px-4 py-4 font-mono text-xs text-slate-600">{id || 'Reference not recorded'}</td>
@@ -344,7 +362,7 @@ export const OperationsWorkflows: React.FC<OperationsWorkflowsProps> = ({ sectio
                         </div>}
                       </td>
                     </tr>
-                    {viewing[id] && <tr className="border-t-2 border-emerald-200 bg-emerald-50/40"><td colSpan={6} className="px-4 py-4"><div className="flex items-center justify-between gap-3"><h4 className="flex items-center gap-2 text-sm font-semibold text-slate-800"><ClipboardList className="h-4 w-4 text-emerald-700" />Order details (full read-through)</h4><button type="button" onClick={() => void copyRecord(record)} className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Copy className="h-3.5 w-3.5" />Copy all fields</button></div><dl className="mt-3 grid gap-x-6 gap-y-2 md:grid-cols-2 lg:grid-cols-3">{Object.entries(record).map(([key, value]) => { const textValue = typeof value === 'object' && value !== null ? JSON.stringify(value) : String(value ?? ''); return <div key={key} className="min-w-0 border-t border-slate-200/80 pt-2"><dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{labelize(key)}</dt><dd className="mt-1 break-words font-mono text-xs text-slate-700">{textValue || '—'}</dd></div>; })}</dl></td></tr>}
+                    {viewing[id] && <tr className="border-t-2 border-emerald-200 bg-emerald-50/40"><td colSpan={7} className="px-4 py-4"><div className="flex items-center justify-between gap-3"><h4 className="flex items-center gap-2 text-sm font-semibold text-slate-800"><ClipboardList className="h-4 w-4 text-emerald-700" />Order details (full read-through)</h4><button type="button" onClick={() => void copyRecord(record)} className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Copy className="h-3.5 w-3.5" />Copy all fields</button></div><dl className="mt-3 grid gap-x-6 gap-y-2 md:grid-cols-2 lg:grid-cols-3">{Object.entries(record).map(([key, value]) => { const textValue = typeof value === 'object' && value !== null ? JSON.stringify(value) : String(value ?? ''); return <div key={key} className="min-w-0 border-t border-slate-200/80 pt-2"><dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{labelize(key)}</dt><dd className="mt-1 break-words font-mono text-xs text-slate-700">{textValue || '—'}</dd></div>; })}</dl></td></tr>}
                   </Fragment>;
                   })}
                 </tbody>
