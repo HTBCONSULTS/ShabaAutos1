@@ -1239,6 +1239,21 @@ html.dark { color-scheme: dark; }
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-via), var(--tw-gradient-to) !important;
 }
 
+/* Import page hero copy + brand-green accents must stay readable in dark. */
+.dark .import-screen h1 {
+  color: #f0f9ec;
+}
+.dark .import-screen h1 .text-\[\#0e7c3a\],
+.dark .import-screen .text-\[\#0e7c3a\] {
+  color: #4ade80;
+}
+.dark .import-screen .text-slate-600 {
+  color: #dce7de;
+}
+.dark .import-screen .text-slate-500 {
+  color: #b8c8bc;
+}
+
 @media (max-width: 639px) {
   .dark .rent-screen .rent-mobile-intro h1 { color: #eef4ef; }
   .dark .rent-screen .rent-mobile-intro > small { color: #9daba3; }
