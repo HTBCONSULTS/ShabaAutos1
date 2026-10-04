@@ -19,6 +19,7 @@ import { OperationsDashboardScreen } from './views/OperationsDashboardScreen';
 import { MobileProfileScreen } from './views/MobileProfileScreen';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { MobileSidebar } from './components/MobileSidebar';
+import { SupportBlob } from './components/SupportBlob';
 
 export default function App() {
   const initialCarId = typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('carId');
@@ -223,6 +224,9 @@ export default function App() {
         compareCount={compareCount}
         triggerRef={menuButtonRef}
       />
+
+      {/* Floating WhatsApp support blob (headphone, bottom-right, opens wa.me chat) */}
+      <SupportBlob />
     </div>
   );
 }

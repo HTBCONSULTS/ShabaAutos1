@@ -1197,3 +1197,22 @@ html.dark { color-scheme: dark; }
 .dark .shaba-logo-img--dark { display: block; }
 .shaba-logo--on-dark .shaba-logo-img--light { display: none; }
 .shaba-logo--on-dark .shaba-logo-img--dark { display: block; }
+/* Regularized mobile top bar */
+.shaba-mobile-topbar .shaba-logo-img { height: 2.4rem; }
+.dark .shaba-mobile-topbar { background: rgba(12, 18, 15, 0.96) !important; border-bottom-color: rgba(255, 255, 255, 0.08) !important; }
+.dark .shaba-mobile-topbar button { background: #131a16 !important; border-color: rgba(255, 255, 255, 0.14) !important; color: #e8f0ea !important; }
+
+/* WhatsApp support blob -- animation keyframes only; layout uses Tailwind utilities in SupportBlob.tsx */
+.shaba-support-blob { animation: shaba-blob-shake 3.2s ease-in-out infinite; }
+.shaba-support-blob:hover,.shaba-support-blob:focus-visible { animation-play-state: paused; }
+
+@keyframes shaba-blob-shake {
+  0%,  100% { transform: rotate(0deg); }
+  2.5% { transform: rotate(-7deg); }
+  5.5% { transform: rotate(6deg); }
+  8.5% { transform: rotate(-4deg); }
+  11.5% { transform: rotate(2deg); }
+  14.5%,  94% { transform: rotate(0deg); }
+  96% { transform: rotate(-2deg); }
+  98% { transform: rotate(1deg); }
+}
