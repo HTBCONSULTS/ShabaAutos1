@@ -1325,3 +1325,48 @@ html.dark { color-scheme: dark; }
 .dark .import-hero-media > div {
   background-image: linear-gradient(to right, #0f1613, rgba(15, 22, 19, 0.9), transparent) !important;
 }
+
+/* Mobile navigation drawer: translucent light surfaces need dark equivalents. */
+.dark .bg-\[\#fbfcfa\] {
+  background-color: #131a16 !important;
+}
+.dark .bg-gray-50\/80,
+.dark .bg-gray-50\/50 {
+  background-color: rgba(19, 26, 22, 0.85) !important;
+}
+.dark .bg-emerald-50\/50,
+.dark .bg-emerald-50\/70 {
+  background-color: rgba(16, 94, 58, 0.28) !important;
+}
+.dark .bg-emerald-100\/80 {
+  background-color: rgba(16, 94, 58, 0.55) !important;
+}
+.dark .hover\:bg-gray-50:hover,
+.dark .hover\:bg-gray-100:hover {
+  background-color: #1b241e !important;
+}
+.dark .hover\:bg-emerald-50:hover,
+.dark .hover\:bg-emerald-100:hover {
+  background-color: rgba(16, 94, 58, 0.45) !important;
+}
+.dark .bg-purple-100 {
+  background-color: rgba(88, 28, 135, 0.45) !important;
+}
+.dark .text-purple-800 {
+  color: #d8b4fe !important;
+}
+.dark .bg-blue-100 {
+  background-color: rgba(30, 64, 175, 0.45) !important;
+}
+.dark .text-blue-800 {
+  color: #93c5fd !important;
+}
+.dark .bg-red-50 {
+  background-color: rgba(127, 29, 29, 0.3) !important;
+}
+.dark .text-red-700 {
+  color: #fca5a5 !important;
+}
+.dark .border-red-200 {
+  border-color: rgba(252, 165, 165, 0.32) !important;
+}
