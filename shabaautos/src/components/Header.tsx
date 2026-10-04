@@ -283,53 +283,55 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="shabaautos-navbar" ref={navContainerRef}>
-      {/* Regularized mobile top bar: identical brand + actions row on every screen (mobile only, desktop/tablet untouched) */}
-      <div className="shaba-mobile-topbar sm:hidden flex items-center justify-between gap-2 sticky top-0 z-30 bg-white/95 backdrop-blur-xl border-b border-slate-200/90 px-4 min-h-[56px]">
-        <div className="flex items-center min-w-0 cursor-pointer" onClick={() => handleNavClick('home')} role="button" tabIndex={0} aria-label="ShabaAutos Home">
-          <ShabaAutosLogo size="sm" />
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <NotificationBell />
-          {isLoggedIn && user ? (
+      {/* Regularized mobile top bar: shared brand + actions row on every screen except home (home keeps its own bespoke mobile header). Mobile only, desktop/tablet untouched. */}
+      {currentScreen !== 'home' && (
+        <div className="shaba-mobile-topbar sm:hidden flex items-center justify-between gap-2 sticky top-0 z-30 bg-white/95 backdrop-blur-xl border-b border-slate-200/90 px-4 min-h-[56px]">
+          <div className="flex items-center min-w-0 cursor-pointer" onClick={() => handleNavClick('home')} role="button" tabIndex={0} aria-label="ShabaAutos Home">
+            <ShabaAutosLogo size="sm" />
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <NotificationBell />
+            {isLoggedIn && user ? (
+              <button
+                type="button"
+                onClick={() => handleNavClick('profile')}
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-emerald-300 bg-white text-[#12492f] shadow-xs transition-all hover:border-[#12492f] hover:bg-emerald-50"
+                aria-label={`Open profile for ${user.fullName || 'User'}`}
+              >
+                {user.avatarUrl ? (
+                  <img src={user.avatarUrl} alt={user.fullName || 'User'} referrerPolicy="no-referrer" className="h-9 w-9 rounded-full object-cover" />
+                ) : (
+                  <span className="text-[10px] font-black uppercase">
+                    {(user.fullName || user.name || 'SA').split(' ').map((n) => n[0]).join('').slice(0, 2) || 'SA'}
+                  </span>
+                )}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => handleNavClick('auth')}
+                className="inline-flex h-9 items-center gap-1.5 rounded-full border border-emerald-300 bg-white px-3 text-[11px] font-bold text-[#12492f] transition-all hover:border-[#12492f] hover:bg-emerald-50"
+                aria-label="Sign in"
+              >
+                <User size={14} />
+                <span>Sign In</span>
+              </button>
+            )}
             <button
               type="button"
-              onClick={() => handleNavClick('profile')}
+              onClick={() => {
+                if (onToggleMobileMenu) onToggleMobileMenu();
+                else setIsMenuOpen(!isMenuOpen);
+              }}
               className="flex h-9 w-9 items-center justify-center rounded-full border border-emerald-300 bg-white text-[#12492f] shadow-xs transition-all hover:border-[#12492f] hover:bg-emerald-50"
-              aria-label={`Open profile for ${user.fullName || 'User'}`}
+              aria-label={isMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-expanded={isMenuOpen}
             >
-              {user.avatarUrl ? (
-                <img src={user.avatarUrl} alt={user.fullName || 'User'} referrerPolicy="no-referrer" className="h-9 w-9 rounded-full object-cover" />
-              ) : (
-                <span className="text-[10px] font-black uppercase">
-                  {(user.fullName || user.name || 'SA').split(' ').map((n) => n[0]).join('').slice(0, 2) || 'SA'}
-                </span>
-              )}
+              {isMenuOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => handleNavClick('auth')}
-              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-emerald-300 bg-white px-3 text-[11px] font-bold text-[#12492f] transition-all hover:border-[#12492f] hover:bg-emerald-50"
-              aria-label="Sign in"
-            >
-              <User size={14} />
-              <span>Sign In</span>
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={() => {
-              if (onToggleMobileMenu) onToggleMobileMenu();
-              else setIsMenuOpen(!isMenuOpen);
-            }}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-emerald-300 bg-white text-[#12492f] shadow-xs transition-all hover:border-[#12492f] hover:bg-emerald-50"
-            aria-label={isMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
-            aria-expanded={isMenuOpen}
-          >
-            {isMenuOpen ? <X size={18} /> : <Menu size={18} />}
-          </button>
+          </div>
         </div>
-      </div>
+      )}
       <div className="shabaautos-navbar-inner">
         {/* Brand Logo */}
         <div

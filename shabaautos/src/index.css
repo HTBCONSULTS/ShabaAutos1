@@ -1202,17 +1202,24 @@ html.dark { color-scheme: dark; }
 .dark .shaba-mobile-topbar { background: rgba(12, 18, 15, 0.96) !important; border-bottom-color: rgba(255, 255, 255, 0.08) !important; }
 .dark .shaba-mobile-topbar button { background: #131a16 !important; border-color: rgba(255, 255, 255, 0.14) !important; color: #e8f0ea !important; }
 
-/* WhatsApp support blob -- animation keyframes only; layout uses Tailwind utilities in SupportBlob.tsx */
-.shaba-support-blob { animation: shaba-blob-shake 3.2s ease-in-out infinite; }
+/* WhatsApp support blob -- animation keyframes; layout uses Tailwind utilities in SupportBlob.tsx */
+.shaba-support-blob { animation: shaba-blob-shake 3.4s ease-in-out infinite; will-change: transform; backface-visibility: hidden; }
 .shaba-support-blob:hover,.shaba-support-blob:focus-visible { animation-play-state: paused; }
 
 @keyframes shaba-blob-shake {
-  0%,  100% { transform: rotate(0deg); }
-  2.5% { transform: rotate(-7deg); }
-  5.5% { transform: rotate(6deg); }
-  8.5% { transform: rotate(-4deg); }
-  11.5% { transform: rotate(2deg); }
-  14.5%,  94% { transform: rotate(0deg); }
-  96% { transform: rotate(-2deg); }
-  98% { transform: rotate(1deg); }
+  0%,  100% { transform: rotate(0deg) scale(1); }
+  2.5% { transform: rotate(-9deg) scale(1.03); }
+  5.5% { transform: rotate(8deg) scale(1.06); }
+  8.5% { transform: rotate(-5deg) scale(1.03); }
+  11.5% { transform: rotate(3deg) scale(1); }
+  14.5% { transform: rotate(0deg) scale(1); }
+  34.5% { transform: rotate(0deg) scale(1); }
+  36.5% { transform: rotate(-3deg) scale(1.02); }
+  38.5% { transform: rotate(2deg) scale(1.02); }
+  40.5% { transform: rotate(0deg) scale(1); }
+  59.5% { transform: rotate(0deg) scale(1); }
+  61.5% { transform: rotate(-4deg) scale(1.04); }
+  63.5% { transform: rotate(3deg) scale(1.04); }
+  65.5% { transform: rotate(0deg) scale(1); }
+  100% { transform: rotate(0deg) scale(1); }
 }

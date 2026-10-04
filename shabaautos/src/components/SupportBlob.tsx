@@ -18,7 +18,7 @@ export const SupportBlob: React.FC<SupportBlobProps> = ({ label = false }) => {
       href={waHref}
       target="_blank"
       rel="noopener noreferrer"
-      className="shaba-support-blob group inline-flex h-14 w-14 items-center justify-center rounded-full border border-emerald-200/40 text-white shadow-[0_10px_24px_rgba(18,73,47,0.38)] fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-30 lg:bottom-6 lg:right-6 lg:h-15 lg:w-15"
+      className="shaba-support-blob group inline-flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-[#128c4a] to-[#0e5c33] text-white border-2 border-white/60 shadow-[0_8px_20px_rgba(14,92,51,0.45),0_0_0_6px_rgba(20,136,74,0.18)] hover:shadow-[0_12px_28px_rgba(14,92,51,0.55),0_0_0_8px_rgba(20,136,74,0.25)] fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-30 lg:bottom-6 lg:right-6 lg:h-15 lg:w-15 will-change-transform"
       aria-label="Chat with ShabaAutos support on WhatsApp"
       title="Chat with ShabaAutos on WhatsApp"
     >

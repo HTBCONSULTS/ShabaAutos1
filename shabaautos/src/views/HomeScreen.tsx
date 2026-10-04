@@ -16,6 +16,7 @@ import {
   Ship,
   DollarSign,
   Headphones,
+  UserRound,
   ShoppingCart,
   Zap,
   Bookmark,
@@ -150,6 +151,55 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] shaba-screen">
+      <div className="home-mobile-header sm:hidden">
+        <div className="home-mobile-brand">
+          <ShabaAutosLogo size="sm" />
+        </div>
+        <div className="home-mobile-header-actions">
+          {isSignedIn && user ? (
+            <button
+              type="button"
+              onClick={() => onNavigate('profile')}
+              className="home-mobile-profile-button"
+              aria-label={`Open profile for ${user.fullName || 'User'}`}
+            >
+              <div className="home-mobile-profile-avatar">
+                {user.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt={user.fullName || 'User Profile'}
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <span>
+                    {user.fullName
+                      ? user.fullName
+                          .split(' ')
+                          .map((n) => n[0])
+                          .join('')
+                          .slice(0, 2)
+                      : 'SA'}
+                  </span>
+                )}
+                <span className="home-mobile-profile-indicator" />
+              </div>
+              <div className="home-mobile-profile-meta">
+                <strong className="home-mobile-profile-name truncate">
+                  {user.fullName ? user.fullName.split(' ')[0] : 'Profile'}
+                </strong>
+                <span className="home-mobile-profile-role uppercase">
+                  {user.role || 'User'}
+                </span>
+              </div>
+            </button>
+          ) : (
+            <button type="button" onClick={() => onNavigate('auth')} className="home-mobile-signin">
+              <UserRound className="w-4 h-4" />
+              Sign In
+            </button>
+          )}
+        </div>
+      </div>
       <section className="home-mobile-hero sm:hidden">
         <div className="mobile-app-greeting">
           <div><span className="mobile-status-dot" /> {new Date().getHours() < 12 ? 'Good morning' : new Date().getHours() < 17 ? 'Good afternoon' : 'Good evening'}</div>
