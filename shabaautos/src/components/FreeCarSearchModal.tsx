@@ -34,6 +34,7 @@ export const FreeCarSearchModal: React.FC<FreeCarSearchModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ExternalCarLookupResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [imageFailed, setImageFailed] = useState(false);
   const [popularSearches] = useState([
     'Toyota RAV4',
     'Lexus RX 350',
@@ -62,6 +63,7 @@ export const FreeCarSearchModal: React.FC<FreeCarSearchModalProps> = ({
 
     setLoading(true);
     setError(null);
+    setImageFailed(false);
     try {
       const data = await lookupCarWithImage(q);
       if (data) {
@@ -86,10 +88,35 @@ export const FreeCarSearchModal: React.FC<FreeCarSearchModalProps> = ({
     onNavigate('find-car');
   };
 
+  // Large source images can fail or crawl on slow mobile links: fall back to the small thumbnail rendering
+  // (Wikimedia thumb URLs accept a smaller width prefix) and ultimately to a branded placeholder.
+
+  const handleImageError = (event: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = event.currentTarget;
+    const currentUrl = img.currentSrc || img.src;
+    if (currentUrl.includes('/thumb/') && !/\/\d+px-/.test(currentUrl.split('/thumb/')[1] || '')) {
+      // Already a resized thumb: give up and show placeholder
+      setImageFailed(true);
+      return;
+    }
+    const scaled = currentUrl
+      .replace(/\/wikipedia\/commons\//, '/wikipedia/commons/thumb/')
+      .replace(/\/[^/]+$/, (suffix: string) => {
+        const name = decodeURIComponent(suffix.replace(/^.*\//, ''));
+        return `/${encodeURIComponent(name)}/640px-${encodeURIComponent(name)}`;
+      });
+    if (scaled === currentUrl || !/thumb\//.test(scaled)) {
+      setImageFailed(true);
+      return;
+    }
+    img.src = scaled;
+    img.onerror = () => setImageFailed(true);
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center overflow-y-auto p-3 sm:p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200">
       <div
-        className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]"
+        className="bg-white w-full max-w-2xl my-auto rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[100dvh] sm:max-h-[92vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -174,7 +201,7 @@ export const FreeCarSearchModal: React.FC<FreeCarSearchModalProps> = ({
         </div>
 
         {/* Content Body */}
-        <div className="p-5 overflow-y-auto flex-1 space-y-4">
+        <div className="p-5 overflow-y-auto flex-1 min-h-0 space-y-4">
           {loading && (
             <div className="py-16 flex flex-col items-center justify-center text-center space-y-3">
               <Loader2 className="w-8 h-8 text-[#12492f] animate-spin" />
@@ -231,11 +258,21 @@ export const FreeCarSearchModal: React.FC<FreeCarSearchModalProps> = ({
 
               {/* Large Image Pulled Directly from Free API */}
               <div className="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-950 aspect-video max-h-[300px]">
-                <img
-                  src={result.imageUrl}
-                  alt={result.title}
-                  className="w-full h-full object-cover"
-                />
+                {imageFailed ? (
+                  <div className="w-full h-full min-h-[150px] flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-[#12492f] to-[#0b3622] text-emerald-100">
+                    <CarIcon className="w-8 h-8 text-emerald-300/80" />
+                    <span className="text-[11px] font-semibold">Photo preview unavailable — specs still live below</span>
+                  </div>
+                ) : (
+                  <img
+                    src={result.imageUrl}
+                    alt={result.title}
+                    loading="eager"
+                    decoding="async"
+                    onError={handleImageError}
+                    className="w-full h-full object-cover"
+                  />
+                )}
                 <div className="absolute bottom-2.5 right-2.5 bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-semibold px-2 py-1 rounded-md">
                   Wikimedia Commons Media
                 </div>

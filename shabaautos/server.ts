@@ -2718,7 +2718,7 @@ app.get('/api/external/car-lookup', async (req: Request, res: Response) => {
         gsrlimit: '8',
         prop: 'imageinfo',
         iiprop: 'url',
-        iiurlwidth: '1200',
+        iiurlwidth: '800',
         format: 'json',
       }).toString();
       const res = await fetch(url.toString(), {
@@ -2759,7 +2759,7 @@ app.get('/api/external/car-lookup', async (req: Request, res: Response) => {
     });
   }
 
-  let imageUrl: string | null = summary.originalimage?.source || summary.thumbnail?.source || null;
+  let imageUrl: string | null = summary.thumbnail?.source || summary.originalimage?.source || null;
   let description = summary.extract || `${summary.title || usedTerm} overviewand specifications.`;
   const title = summary.title || usedTerm;
   const pageUrl = summary.content_urls?.desktop?.page;
