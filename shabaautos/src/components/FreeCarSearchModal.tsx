@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Search,
   X,
@@ -34,7 +35,6 @@ export const FreeCarSearchModal: React.FC<FreeCarSearchModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ExternalCarLookupResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [imageFailed, setImageFailed] = useState(false);
   const [popularSearches] = useState([
     'Toyota RAV4',
     'Lexus RX 350',
@@ -55,6 +55,20 @@ export const FreeCarSearchModal: React.FC<FreeCarSearchModalProps> = ({
     }
   }, [initialQuery, isOpen]);
 
+  // Lock the page behind the dialog and allow keyboard dismissal.
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isOpen, onClose]);
   if (!isOpen) return null;
 
   const handleSearch = async (searchQuery?: string) => {
@@ -63,7 +77,6 @@ export const FreeCarSearchModal: React.FC<FreeCarSearchModalProps> = ({
 
     setLoading(true);
     setError(null);
-    setImageFailed(false);
     try {
       const data = await lookupCarWithImage(q);
       if (data) {
@@ -88,37 +101,21 @@ export const FreeCarSearchModal: React.FC<FreeCarSearchModalProps> = ({
     onNavigate('find-car');
   };
 
-  // Large source images can fail or crawl on slow mobile links: fall back to the small thumbnail rendering
-  // (Wikimedia thumb URLs accept a smaller width prefix) and ultimately to a branded placeholder.
-
-  const handleImageError = (event: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = event.currentTarget;
-    const currentUrl = img.currentSrc || img.src;
-    if (currentUrl.includes('/thumb/') && !/\/\d+px-/.test(currentUrl.split('/thumb/')[1] || '')) {
-      // Already a resized thumb: give up and show placeholder
-      setImageFailed(true);
-      return;
-    }
-    const scaled = currentUrl
-      .replace(/\/wikipedia\/commons\//, '/wikipedia/commons/thumb/')
-      .replace(/\/[^/]+$/, (suffix: string) => {
-        const name = decodeURIComponent(suffix.replace(/^.*\//, ''));
-        return `/${encodeURIComponent(name)}/640px-${encodeURIComponent(name)}`;
-      });
-    if (scaled === currentUrl || !/thumb\//.test(scaled)) {
-      setImageFailed(true);
-      return;
-    }
-    img.src = scaled;
-    img.onerror = () => setImageFailed(true);
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center overflow-y-auto p-3 sm:p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200">
-      <div
-        className="bg-white w-full max-w-2xl my-auto rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[100dvh] sm:max-h-[92vh]"
-        onClick={(e) => e.stopPropagation()}
-      >
+  // Rendered in a portal: page-level transforms must never trap this overlay,
+  // otherwise a fixed dialog is positioned against the page instead of the viewport.
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[70] overflow-y-auto bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Live car database and image lookup"
+    >
+      <div className="min-h-full flex items-start sm:items-center justify-center p-3 sm:p-4">
+        <div
+          className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[88vh] sm:max-h-[92vh]"
+          onClick={(e) => e.stopPropagation()}
+        >
         {/* Header */}
         <div className="px-5 py-4 bg-[#12492f] text-white flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -127,10 +124,10 @@ export const FreeCarSearchModal: React.FC<FreeCarSearchModalProps> = ({
             </div>
             <div>
               <h2 className="text-base font-black tracking-tight leading-tight">
-                Live Car Database &amp; Image Lookup
+                Live Car Reference &amp; Photo Lookup
               </h2>
               <p className="text-[11px] text-emerald-200/80 font-medium">
-                Free Vehicle Specs &amp; Genuine Photos from NHTSA &amp; Wikimedia
+                Vehicle summaries and photographs from Wikipedia &amp; Wikimedia Commons
               </p>
             </div>
           </div>
@@ -158,7 +155,7 @@ export const FreeCarSearchModal: React.FC<FreeCarSearchModalProps> = ({
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Type ANY vehicle (e.g., Toyota Camry, Lexus RX 350, Mercedes GLE)..."
+                placeholder="Type any vehicle (e.g. Toyota Camry, Lexus RX 350)"
                 className="w-full pl-10 pr-4 py-2.5 min-h-[44px] bg-white border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#12492f]/20 focus:border-[#12492f]"
               />
             </div>
@@ -175,7 +172,7 @@ export const FreeCarSearchModal: React.FC<FreeCarSearchModalProps> = ({
               ) : (
                 <>
                   <Search className="w-4 h-4" />
-                  <span>Pull Specs &amp; Image</span>
+                  <span>Look up vehicle</span>
                 </>
               )}
             </button>
@@ -201,15 +198,15 @@ export const FreeCarSearchModal: React.FC<FreeCarSearchModalProps> = ({
         </div>
 
         {/* Content Body */}
-        <div className="p-5 overflow-y-auto flex-1 min-h-0 space-y-4">
+        <div className="p-5 overflow-y-auto flex-1 space-y-4">
           {loading && (
             <div className="py-16 flex flex-col items-center justify-center text-center space-y-3">
               <Loader2 className="w-8 h-8 text-[#12492f] animate-spin" />
               <p className="text-sm font-bold text-slate-800">
-                Fetching vehicle metadata and live image...
+                Fetching reference details and image...
               </p>
               <p className="text-xs text-slate-500 max-w-sm">
-                Querying the NHTSA vehicle specifications catalog and pulling high-resolution media from Wikimedia Commons.
+                Querying the open vehicle reference catalog and Wikimedia Commons for an image.
               </p>
             </div>
           )}
@@ -229,7 +226,7 @@ export const FreeCarSearchModal: React.FC<FreeCarSearchModalProps> = ({
               <CarIcon className="w-12 h-12 mx-auto text-slate-300" />
               <h3 className="text-sm font-bold text-slate-800">Search Any Car in the World</h3>
               <p className="text-xs text-slate-500 max-w-md mx-auto">
-                Type any manufacturer and model above or click a suggestion pill to retrieve genuine vehicle technical specs and automotive photography from our free API engine.
+                Type any manufacturer and model above, or tap a suggestion, to pull a reference summary and photograph from open vehicle databases.
               </p>
             </div>
           )}
@@ -243,11 +240,18 @@ export const FreeCarSearchModal: React.FC<FreeCarSearchModalProps> = ({
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md flex items-center gap-1">
                       <ShieldCheck className="w-3.5 h-3.5 text-emerald-700" />
-                      Live Verified
+                      Reference summary
                     </span>
-                    <span className="text-xs text-slate-500">
-                      Market Estimate: <strong className="text-slate-800">{result.specs.estimatedNigeriaPriceNgn}</strong>
-                    </span>
+                    {result.pageUrl && (
+                      <a
+                        href={result.pageUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-slate-500 underline hover:text-[#12492f]"
+                      >
+                        View source article
+                      </a>
+                    )}
                   </div>
                 </div>
 
@@ -257,56 +261,53 @@ export const FreeCarSearchModal: React.FC<FreeCarSearchModalProps> = ({
               </div>
 
               {/* Large Image Pulled Directly from Free API */}
-              <div className="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-950 aspect-video max-h-[300px]">
-                {imageFailed ? (
-                  <div className="w-full h-full min-h-[150px] flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-[#12492f] to-[#0b3622] text-emerald-100">
-                    <CarIcon className="w-8 h-8 text-emerald-300/80" />
-                    <span className="text-[11px] font-semibold">Photo preview unavailable — specs still live below</span>
-                  </div>
-                ) : (
+              {result.imageUrl ? (
+                <div className="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-950 aspect-video max-h-[300px]">
                   <img
                     src={result.imageUrl}
                     alt={result.title}
-                    loading="eager"
-                    decoding="async"
-                    onError={handleImageError}
                     className="w-full h-full object-cover"
                   />
-                )}
-                <div className="absolute bottom-2.5 right-2.5 bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-semibold px-2 py-1 rounded-md">
-                  Wikimedia Commons Media
+                  <div className="absolute bottom-2.5 right-2.5 bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-semibold px-2 py-1 rounded-md">
+                    Wikimedia Commons Media
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-xs text-slate-500">
+                  No photograph is published for this reference entry. Open the source article above for the full summary.
+                </div>
+              )}
 
               {/* Summary Description */}
               <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs text-slate-700 leading-relaxed">
                 {result.description}
               </div>
 
-              {/* Technical Specifications Grid */}
-              <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-                  Technical Specifications
-                </h4>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                  <div className="p-3 bg-white border border-slate-200 rounded-xl">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Engine</span>
-                    <span className="text-xs font-bold text-slate-800 line-clamp-1">{result.specs.engine}</span>
+              {/* Specifications are optional: only render what the provider published. */}
+              {(() => {
+                const rows = ([
+                  ['Engine', result.specs?.engine],
+                  ['Transmission', result.specs?.transmission],
+                  ['Drivetrain', result.specs?.drivetrain],
+                  ['Fuel type', result.specs?.fuelType],
+                ] as Array<[string, string | undefined]>).filter(([, value]) => Boolean(value));
+                if (rows.length === 0) return null;
+                return (
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+                      Published specifications
+                    </h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                      {rows.map(([label, value]) => (
+                        <div key={label} className="p-3 bg-white border border-slate-200 rounded-xl">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase block">{label}</span>
+                          <span className="text-xs font-bold text-slate-800 line-clamp-1">{value}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="p-3 bg-white border border-slate-200 rounded-xl">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Transmission</span>
-                    <span className="text-xs font-bold text-slate-800 line-clamp-1">{result.specs.transmission}</span>
-                  </div>
-                  <div className="p-3 bg-white border border-slate-200 rounded-xl">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Drivetrain</span>
-                    <span className="text-xs font-bold text-slate-800">{result.specs.drivetrain}</span>
-                  </div>
-                  <div className="p-3 bg-white border border-slate-200 rounded-xl">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Fuel Type</span>
-                    <span className="text-xs font-bold text-slate-800">{result.specs.fuelType}</span>
-                  </div>
-                </div>
-              </div>
+                );
+              })()}
 
               {/* Action Buttons for this vehicle */}
               <div className="pt-3 border-t border-slate-200 flex flex-col sm:flex-row items-center gap-2.5">
@@ -330,7 +331,9 @@ export const FreeCarSearchModal: React.FC<FreeCarSearchModalProps> = ({
             </div>
           )}
         </div>
+        </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

@@ -220,17 +220,22 @@ export interface ConciergePayload {
 export interface ExternalCarLookupResult {
   searchTerm: string;
   title: string;
-  imageUrl: string;
+  imageUrl?: string | null;
   description: string;
-  specs: {
-    engine: string;
-    transmission: string;
-    fuelType: string;
-    drivetrain: string;
-    estimatedNigeriaPriceNgn: string;
-    rating: number;
-  };
+  pageUrl?: string;
   verifiedSource: string;
+  /**
+   * Optional specification block. The free reference provider returns a summary
+   * and a photograph, so specs may legitimately be absent. Never assume it exists.
+   */
+  specs?: {
+    engine?: string;
+    transmission?: string;
+    fuelType?: string;
+    drivetrain?: string;
+    estimatedNigeriaPriceNgn?: string;
+    rating?: number;
+  } | null;
 }
 
 export interface DecodedVinResult {
@@ -608,8 +613,10 @@ export async function lookupCarWithImage(query: string, make?: string, model?: s
     const contentType = res.headers.get('content-type') || '';
     if (res.ok && contentType.includes('application/json')) {
       const json = await res.json();
-      if (json.success && json.data) {
-        return json.data;
+      const data = json?.data as ExternalCarLookupResult | undefined;
+      // Only treat the payload as a usable match when it actually describes a vehicle.
+      if (json.success && data && (data.title || data.description)) {
+        return { ...data, searchTerm: data.searchTerm || query };
       }
     }
     return null;

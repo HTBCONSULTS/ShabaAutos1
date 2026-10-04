@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { fetchMySavedVehicles, fetchMyComparison, removeSavedVehicleFromAccount, saveVehicleToAccount } from './services/api';
 import { useAuthUser } from './context/AuthContext';
 import { Car, ScreenId } from './types';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { HomeScreen } from './views/HomeScreen';
@@ -123,6 +124,7 @@ export default function App() {
 
       {/* Main Screen Views with bottom safe padding on mobile and tablet for the bottom nav bar */}
       <main key={currentScreen} className="shaba-page-transition flex-1 pb-20 lg:pb-0 min-w-0 w-full max-w-full">
+        <ErrorBoundary>
         {currentScreen === 'home' && (
           <HomeScreen
             onNavigate={handleNavigate}
@@ -198,6 +200,7 @@ export default function App() {
             savedCount={savedCarIds.length}
           />
         )}
+        </ErrorBoundary>
       </main>
 
       {/* Global Footer */}
