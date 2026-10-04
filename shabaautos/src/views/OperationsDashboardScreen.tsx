@@ -4,6 +4,7 @@ import {
   BarChart3,
   ArrowDown,
   ArrowUp,
+  BadgeDollarSign,
   Bell,
   CarFront,
   CheckCircle2,
@@ -52,7 +53,7 @@ import {
 import { ScreenId } from '../types';
 
 interface OperationsDashboardScreenProps { onNavigate: (screen: ScreenId) => void; }
-type Tab = 'overview' | 'inventory' | 'notifications' | 'audit' | 'sell' | 'concierge' | 'imports' | 'rentals' | 'analytics' | 'settings';
+type Tab = 'overview' | 'inventory' | 'notifications' | 'audit' | 'sell' | 'concierge' | 'imports' | 'rentals' | 'offers' | 'inspections' | 'analytics' | 'settings';
 type Role = 'staff' | 'admin';
 type VehicleFormState = Record<string, string>;
 type PanelErrors = { summary?: string; inventory?: string; notifications?: string; audit?: string };
@@ -301,6 +302,8 @@ export const OperationsDashboardScreen: React.FC<OperationsDashboardScreenProps>
     concierge: 'concierge',
     import: 'imports',
     rental: 'rentals',
+    offer: 'offers',
+    inspection: 'inspections',
   };
   const openRelatedQueue = async (item: OperationsNotification) => {
     const target = item.relatedEntityType ? RELATED_TAB[item.relatedEntityType] : undefined;
@@ -320,6 +323,8 @@ export const OperationsDashboardScreen: React.FC<OperationsDashboardScreenProps>
     { id: 'concierge', label: 'Concierge', icon: <Search size={16} /> },
     { id: 'imports', label: 'Imports', icon: <Truck size={16} /> },
     { id: 'rentals', label: 'Rentals', icon: <CarFront size={16} /> },
+    { id: 'offers', label: 'Offers', icon: <BadgeDollarSign size={16} /> },
+    { id: 'inspections', label: 'Inspections', icon: <ClipboardCheck size={16} /> },
     { id: 'analytics', label: 'Analytics', icon: <BarChart3 size={16} /> },
     { id: 'notifications', label: 'Notifications', icon: <Bell size={16} /> },
     { id: 'settings', label: 'Site settings', icon: <Settings2 size={16} /> },
@@ -342,7 +347,7 @@ const Inventory: React.FC<InventoryProps> = ({ vehicles, filter, setFilter, sear
 const Notifications: React.FC<{ items: OperationsNotification[]; error?: string; onRetry: () => void; onMarkRead: (item: OperationsNotification) => void; onOpenRelated?: (item: OperationsNotification) => void; pendingAction: string | null }> = ({ items, error, onRetry, onMarkRead, onOpenRelated, pendingAction }) => {
   const relatedLabel = (item: OperationsNotification): string => {
     if (!item.relatedEntityType) return '';
-    const known: Record<string, string> = { sell: 'Seller review queue', concierge: 'Concierge queue', import: 'Import queue', rental: 'Rentals queue' };
+    const known: Record<string, string> = { sell: 'Seller review queue', concierge: 'Concierge queue', import: 'Import queue', rental: 'Rentals queue', offer: 'Offers queue', inspection: 'Inspections queue' };
     return known[item.relatedEntityType] ?? '';
   };
   return <div className="rounded-2xl border border-slate-200 bg-white p-5"><p className="text-[10px] font-black uppercase tracking-[.15em] text-[#0e7c3a]">In-app inbox</p><h2 className="mt-1 text-lg font-black">Operational notifications</h2><p className="mt-1 text-xs text-slate-500">Click any notification to open the queue it belongs to.</p>{error ? <PanelError message={error} onRetry={onRetry} /> : <div className="mt-4 space-y-2">{items.map((item) => {

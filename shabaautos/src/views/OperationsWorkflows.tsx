@@ -32,7 +32,7 @@ import {
 } from '../services/api';
 
 export interface OperationsWorkflowsProps {
-  section: 'sell' | 'concierge' | 'imports' | 'rentals' | 'analytics' | 'settings';
+  section: 'sell' | 'concierge' | 'imports' | 'rentals' | 'offers' | 'inspections' | 'analytics' | 'settings';
   role: 'staff' | 'admin';
 }
 
@@ -51,6 +51,8 @@ const SELL_STATUSES = ['pending', 'approved', 'rejected', 'needs_info'] as const
 const CONCIERGE_STATUSES = ['Request Received', 'Agent Assigned', 'Options Presented', 'Fulfilled', 'Closed'] as const;
 const IMPORT_STATUSES = ['Sourcing Started', 'Inspection Passed', 'Shipped from USA', 'Port Arrival', 'Customs Clearance', 'Delivered', 'Cancelled'] as const;
 const RENTAL_STATUSES = ['Active Reservation', 'Completed', 'Cancelled'] as const;
+const OFFER_STATUSES = ['Pending Review', 'Accepted', 'Countered', 'Declined'] as const;
+const INSPECTION_STATUSES = ['Pending', 'Confirmed', 'Completed', 'Cancelled'] as const;
 const SETTING_GROUPS = [
   { key: 'contact', label: 'Contact', prefixes: ['site.'] },
   { key: 'fees', label: 'Fees', prefixes: ['rental.', 'sell.'] },
@@ -64,6 +66,8 @@ const titleForSection: Record<OperationsWorkflowsProps['section'], { title: stri
   concierge: { title: 'Concierge requests', description: 'Move requests through the service workflow and keep contact evidence with assignment or options updates.' },
   imports: { title: 'Import requests', description: 'Record only confirmed shipment checkpoints and supporting evidence; this view does not invent vessel or milestone data.' },
   rentals: { title: 'Rental bookings', description: 'Track booking lifecycle from the persisted reservation record.' },
+  offers: { title: 'Customer offers', description: 'Review submitted offers and respond with accept, counter, or decline decisions.' },
+  inspections: { title: 'Inspection bookings', description: 'Confirm, complete, or cancel vehicle inspection appointments.' },
   analytics: { title: 'Measured activity analytics', description: 'Review captured backend activity events only. This is not an estimate of total traffic.' },
   settings: { title: 'Site settings', description: 'Review configured contact, fee, import and valuation values. Rates and estimates require independent verification before customer use.' },
 };
@@ -85,12 +89,13 @@ const customerFor = (kind: OperationsQueue, record: QueueRecord): string => firs
 const contactFor = (record: QueueRecord): string => firstText(record, ['phone', 'email']) || 'No contact recorded';
 const vehicleFor = (kind: OperationsQueue, record: QueueRecord): string => {
   if (kind === 'rentals') return rentalSummary(record) || 'Rental vehicle not recorded';
+  if (kind === 'offers' || kind === 'inspections') return firstText(record, ['carName', 'car', 'vehicleName']) || 'Vehicle not recorded';
   const make = firstText(record, ['make', 'desiredMake']);
   const model = firstText(record, ['model', 'desiredModel']);
   const year = firstText(record, ['year', 'yearRange']);
   return [year, make, model].filter(Boolean).join(' ') || (kind === 'concierge' ? 'Vehicle preference not recorded' : 'Vehicle not recorded');
 };
-const dateFor = (kind: OperationsQueue, record: QueueRecord): string => firstText(record, kind === 'rentals' ? ['pickupDate', 'createdAt', 'updatedAt'] : ['createdAt', 'updatedAt', 'date']);
+const dateFor = (kind: OperationsQueue, record: QueueRecord): string => firstText(record, kind === 'rentals' ? ['pickupDate', 'createdAt', 'updatedAt'] : kind === 'inspections' ? ['date', 'createdAt', 'updatedAt'] : kind === 'offers' ? ['createdAt', 'updatedAt'] : ['createdAt', 'updatedAt', 'date']);
 const formatDate = (value: string): string => {
   if (!value) return 'Date not recorded';
   const parsed = new Date(value);
@@ -103,7 +108,9 @@ const statusOptionsFor = (kind: OperationsQueue): readonly string[] => {
   if (kind === 'sell') return SELL_STATUSES;
   if (kind === 'concierge') return CONCIERGE_STATUSES;
   if (kind === 'imports') return IMPORT_STATUSES;
-  return RENTAL_STATUSES;
+  if (kind === 'rentals') return RENTAL_STATUSES;
+  if (kind === 'offers') return OFFER_STATUSES;
+  return INSPECTION_STATUSES;
 };
 
 const TYPE_META: Record<OperationsQueue, { label: string; badgeClass: string; dotClass: string }> = {
@@ -111,6 +118,8 @@ const TYPE_META: Record<OperationsQueue, { label: string; badgeClass: string; do
   concierge: { label: 'Find a Car', badgeClass: 'bg-blue-100 text-blue-800 border-blue-200', dotClass: 'bg-blue-500' },
   imports: { label: 'Import', badgeClass: 'bg-purple-100 text-purple-800 border-purple-200', dotClass: 'bg-purple-500' },
   rentals: { label: 'Rent', badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200', dotClass: 'bg-emerald-500' },
+  offers: { label: 'Offer', badgeClass: 'bg-rose-100 text-rose-800 border-rose-200', dotClass: 'bg-rose-500' },
+  inspections: { label: 'Inspection', badgeClass: 'bg-cyan-100 text-cyan-800 border-cyan-200', dotClass: 'bg-cyan-500' },
 };
 const typeMetaFor = (kind: OperationsQueue): { label: string; badgeClass: string; dotClass: string } => TYPE_META[kind] ?? TYPE_META.sell;
 
@@ -161,7 +170,7 @@ export const OperationsWorkflows: React.FC<OperationsWorkflowsProps> = ({ sectio
   const [settingBusy, setSettingBusy] = useState<string | null>(null);
 
   const definition = titleForSection[section];
-  const kind = section === 'sell' || section === 'concierge' || section === 'imports' || section === 'rentals' ? section : null;
+  const kind: OperationsQueue | null = section === 'sell' || section === 'concierge' || section === 'imports' || section === 'rentals' || section === 'offers' || section === 'inspections' ? section : null;
 
   useEffect(() => {
     let cancelled = false;

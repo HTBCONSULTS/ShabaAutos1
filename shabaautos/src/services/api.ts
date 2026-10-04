@@ -969,7 +969,7 @@ export async function fetchOperationsAudit(token?: string): Promise<{ success: b
   return res.json();
 }
 
-export type OperationsQueue = 'sell' | 'concierge' | 'imports' | 'rentals';
+export type OperationsQueue = 'sell' | 'concierge' | 'imports' | 'rentals' | 'offers' | 'inspections';
 export interface OperationsSetting { id: string; settingKey: string; settingValue: string; valueType: 'string' | 'number' | 'json'; label?: string; description?: string; updatedAt?: string; }
 
 export async function fetchOperationsQueue(kind: OperationsQueue, token?: string): Promise<{ success: boolean; data: any[]; message?: string }> {

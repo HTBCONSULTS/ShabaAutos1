@@ -2265,6 +2265,97 @@ app.get('/api/settings/public', async (_req: Request, res: Response) => {
    }
 });
 
+// Offers queue
+app.get('/api/ops/offers', requireAuth, requireRole(['staff', 'admin']), async (req: Request, res: Response) => {
+  try {
+    const statusFilter = typeof req.query.status === 'string' ? String(req.query.status) : undefined;
+    let list = await dbService.offers.listAll(500, 0);
+    if (statusFilter) list = list.filter((offer) => offer.status === statusFilter);
+    res.json({ success: true, data: list, total: list.length });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.patch('/api/ops/offers/:id', requireAuth, requireRole(['staff', 'admin']), async (req: Request, res: Response) => {
+  try {
+    const allowed: ReadonlyArray<string> = ['Pending Review', 'Accepted', 'Countered', 'Declined'];
+    if (!req.body?.status || !allowed.includes(String(req.body.status))) return res.status(400).json({ success: false, message: 'Invalid or missing status' });
+    const status = String(req.body.status) as 'Pending Review' | 'Accepted' | 'Countered' | 'Declined';
+    const prev = await dbService.offers.findById(req.params.id);
+    if (!prev) return res.status(404).json({ success: false, message: 'Offer not found.' });
+    const counterAmountNgn = req.body?.status === 'Countered' ? Number(req.body.counterAmountNgn) : undefined;
+    const staffNotes = req.body?.staffNotes ? String(req.body.staffNotes) : undefined;
+    const updated = await dbService.offers.updateStatus(req.params.id, status, counterAmountNgn, staffNotes);
+    if (!updated) return res.status(404).json({ success: false, message: 'Offer not found.' });
+    await dbService.statusHistory.record({
+      resourceType: 'offer',
+      resourceId: req.params.id,
+      fromStatus: prev.status,
+      toStatus: status,
+      note: staffNotes,
+      changedBy: req.user!.id,
+    }).catch(() => undefined);
+    await notifyCustomerOnStatusChange({
+      userId: (prev as any)?.userId,
+      userEmail: (prev as any)?.email,
+      entity: 'offer',
+      entityLabel: 'Vehicle offer',
+      title: 'Offer updated',
+      message: 'Your offer on ' + prev.carName + ' is now: ' + status,
+      relatedId: req.params.id,
+    });
+    res.json({ success: true, data: updated });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Inspections queue
+app.get('/api/ops/inspections', requireAuth, requireRole(['staff', 'admin']), async (req: Request, res: Response) => {
+  try {
+    const statusFilter = typeof req.query.status === 'string' ? String(req.query.status) : undefined;
+    let list = await dbService.inspections.listAll(500, 0);
+    if (statusFilter) list = list.filter((inspection) => inspection.status === statusFilter);
+    res.json({ success: true, data: list, total: list.length });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.patch('/api/ops/inspections/:id', requireAuth, requireRole(['staff', 'admin']), async (req: Request, res: Response) => {
+  try {
+    const allowed: ReadonlyArray<string> = ['Pending', 'Confirmed', 'Completed', 'Cancelled'];
+    if (!req.body?.status || !allowed.includes(String(req.body.status))) return res.status(400).json({ success: false, message: 'Invalid or missing status' });
+    const status = String(req.body.status) as 'Pending' | 'Confirmed' | 'Completed' | 'Cancelled';
+    const prev = await dbService.inspections.findById(req.params.id);
+    if (!prev) return res.status(404).json({ success: false, message: 'Inspection not found.' });
+    const notes = req.body?.notes ? String(req.body.notes) : undefined;
+    const updated = await dbService.inspections.updateStatus(req.params.id, status, notes);
+    if (!updated) return res.status(404).json({ success: false, message: 'Inspection not found.' });
+    await dbService.statusHistory.record({
+      resourceType: 'inspection',
+      resourceId: req.params.id,
+      fromStatus: prev.status,
+      toStatus: status,
+      note: notes,
+      changedBy: req.user!.id,
+    }).catch(() => undefined);
+    await notifyCustomerOnStatusChange({
+      userId: (prev as any)?.userId,
+      userEmail: (prev as any)?.email,
+      entity: 'inspection',
+      entityLabel: 'Vehicle inspection',
+      title: 'Inspection updated',
+      message: 'Your inspection request on ' + prev.carName + ' is now: ' + status,
+      relatedId: req.params.id,
+    });
+    res.json({ success: true, data: updated });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 app.get('/api/ops/settings', requireAuth, requireRole(['staff', 'admin']), async (req: Request, res: Response) => {
   try {
     const all = await dbService.settings.getAll(true);
