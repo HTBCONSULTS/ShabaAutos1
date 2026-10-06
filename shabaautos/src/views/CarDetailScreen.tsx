@@ -83,7 +83,9 @@ export const CarDetailScreen: React.FC<CarDetailScreenProps> = ({
 
   // Keep an explicitly passed listing visible while the requested ID is being verified.
   // Once the request resolves, only the server response is used as the source of truth.
-  const car = serverCar || (vehicleLoading ? propCar : undefined);
+  // Prefer the fresh server copy when available, otherwise keep the car object
+  // passed in by the list (so a missing/expired server record never blanks the page).
+  const car = serverCar || propCar || undefined;
   const isVerifiedCar = Boolean(serverCar);
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);

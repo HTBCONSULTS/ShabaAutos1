@@ -101,6 +101,31 @@ export const FreeCarSearchModal: React.FC<FreeCarSearchModalProps> = ({
     onNavigate('find-car');
   };
 
+// Large source images can fail or crawl on slow mobile links: fall back to the small thumbnail rendering
+  // (Wikimedia thumb URLs accept a smaller width prefix) and ultimately to a branded placeholder.
+
+  const handleImageError = (event: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = event.currentTarget;
+    const currentUrl = img.currentSrc || img.src;
+    if (currentUrl.includes('/thumb/') && !/\/\d+px-/.test(currentUrl.split('/thumb/')[1] || '')) {
+      // Already a resized thumb: give up and show placeholder
+      setImageFailed(true);
+      return;
+    }
+    const scaled = currentUrl
+      .replace(/\/wikipedia\/commons\//, '/wikipedia/commons/thumb/')
+      .replace(/\/[^/]+$/, (suffix: string) => {
+        const name = decodeURIComponent(suffix.replace(/^.*\//, ''));
+        return `/${encodeURIComponent(name)}/640px-${encodeURIComponent(name)}`;
+      });
+    if (scaled === currentUrl || !/thumb\//.test(scaled)) {
+      setImageFailed(true);
+      return;
+    }
+    img.src = scaled;
+    img.onerror = () => setImageFailed(true);
+  };
+
   // Rendered in a portal: page-level transforms must never trap this overlay,
   // otherwise a fixed dialog is positioned against the page instead of the viewport.
   return createPortal(
@@ -111,9 +136,9 @@ export const FreeCarSearchModal: React.FC<FreeCarSearchModalProps> = ({
       aria-modal="true"
       aria-label="Live car database and image lookup"
     >
-      <div className="min-h-full flex items-start sm:items-center justify-center p-3 sm:p-4">
+      <div className="min-h-full flex items-center justify-center p-2 sm:p-4">
         <div
-          className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[88vh] sm:max-h-[92vh]"
+          className="bg-white w-full max-w-2xl my-auto max-h-[92dvh] sm:max-h-[92vh] rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
         {/* Header */}
