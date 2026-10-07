@@ -90,6 +90,7 @@ export const Header: React.FC<HeaderProps> = ({
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const navContainerRef = useRef<HTMLDivElement>(null);
+  const companyHoveredRef = useRef(false);
 
   // Close dropdown on outside click or touch
   useEffect(() => {
@@ -740,10 +741,23 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Company and customer-help links */}
-          <div className="shabaautos-dropdown">
+          <div
+            className="shabaautos-dropdown"
+            onMouseEnter={() => {
+              companyHoveredRef.current = true;
+              handleMouseEnter('company');
+            }}
+            onMouseLeave={() => {
+              companyHoveredRef.current = false;
+              handleMouseLeave();
+            }}
+          >
             <button
               type="button"
-              onClick={() => handleToggleDropdown('company')}
+              onClick={(event) => {
+                if (companyHoveredRef.current) handleMouseEnter('company');
+                else handleToggleDropdown('company', event);
+              }}
               className={`shabaautos-nav-link gap-1 ${
                 ['about', 'faq', 'policies-legal', 'policy-terms-and-conditions', 'policy-privacy', 'policy-refunds-and-cancellations', 'policy-dealer-membership', 'policy-rental-terms', 'policy-fees-and-charges'].includes(currentScreen) ? 'active' : ''
               }`}
@@ -755,7 +769,7 @@ export const Header: React.FC<HeaderProps> = ({
               <ChevronDown size={12} className={`text-[#12492f] transition-transform duration-200 ${activeDropdown === 'company' ? 'rotate-180' : ''}`} aria-hidden="true" />
             </button>
             {activeDropdown === 'company' && (
-              <div id="company-help-menu" className="shabaautos-dropdown-panel w-[270px]">
+              <div id="company-help-menu" className="shabaautos-dropdown-panel shabaautos-company-dropdown-panel w-[270px]">
                 <div className="px-3 py-2 border-b border-[#e4e9e3] mb-1.5">
                   <span className="text-[11px] font-bold text-[#12492f] uppercase tracking-wider">Company &amp; information</span>
                 </div>
