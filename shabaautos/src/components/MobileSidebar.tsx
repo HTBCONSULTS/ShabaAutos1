@@ -17,6 +17,9 @@ import {
   Phone,
   LogOut,
   LayoutDashboard,
+  FileText,
+  Info,
+  CircleHelp,
 } from 'lucide-react';
 import { ScreenId } from '../types';
 import { ShabaAutosLogo } from './ShabaAutosLogo';
@@ -528,6 +531,22 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
                 {savedCount} saved
               </span>
             </button>
+
+            <div className="pt-3 mt-2 border-t border-gray-100">
+              <div className="px-3.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">Company &amp; help</div>
+              <button type="button" onClick={() => handleNavClick('about')} className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${currentScreen === 'about' ? 'bg-emerald-100/80 text-[#12492f]' : 'text-gray-800 hover:bg-gray-50'}`}>
+                <span className="flex items-center gap-2.5"><Info size={15} className="text-emerald-700" />About ShabaAutos</span>
+                <ChevronRight size={14} className="text-gray-400" />
+              </button>
+              <button type="button" onClick={() => handleNavClick('faq')} className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${currentScreen === 'faq' ? 'bg-emerald-100/80 text-[#12492f]' : 'text-gray-800 hover:bg-gray-50'}`}>
+                <span className="flex items-center gap-2.5"><CircleHelp size={15} className="text-emerald-700" />Frequently Asked Questions</span>
+                <ChevronRight size={14} className="text-gray-400" />
+              </button>
+              <button type="button" onClick={() => handleNavClick('policies-legal')} className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${currentScreen === 'policies-legal' || currentScreen.startsWith('policy-') ? 'bg-emerald-100/80 text-[#12492f]' : 'text-gray-800 hover:bg-gray-50'}`}>
+                <span className="flex items-center gap-2.5"><FileText size={15} className="text-emerald-700" />Policies &amp; Legal</span>
+                <ChevronRight size={14} className="text-gray-400" />
+              </button>
+            </div>
           </div>
 
           {/* Account Card & Support Direct Links */}

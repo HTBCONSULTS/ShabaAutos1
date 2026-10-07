@@ -28,7 +28,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
     : '';
 
   return (
-    <footer className="bg-[#0b1310] text-gray-300">
+    <footer id="site-footer" className="bg-[#0b1310] text-gray-300">
       {/* Upper Features Strip */}
       <div className="border-b border-gray-800 bg-[#08100d] py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -67,7 +67,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
 
       {/* Main Footer Links */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
           {/* Col 1: Brand info */}
           <div className="lg:col-span-2 space-y-4">
             <div className="cursor-pointer select-none inline-block" onClick={() => onNavigate('home')}>
@@ -190,6 +190,16 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                   Ask about inspection records
                 </a>
               </li>}
+            </ul>
+          </div>
+
+          {/* Company and customer help */}
+          <div>
+            <h4 className="text-sm font-bold text-white mb-4 uppercase tracking-wider">Company &amp; Help</h4>
+            <ul className="space-y-2 text-xs">
+              <li><button onClick={() => onNavigate('about')} className="hover:text-emerald-400 transition-colors text-left">About ShabaAutos</button></li>
+              <li><button onClick={() => onNavigate('faq')} className="hover:text-emerald-400 transition-colors text-left">Frequently Asked Questions</button></li>
+              <li><button onClick={() => onNavigate('policies-legal')} className="hover:text-emerald-400 transition-colors text-left">Policies &amp; Legal</button></li>
             </ul>
           </div>
 

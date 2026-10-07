@@ -35,6 +35,7 @@ export const FreeCarSearchModal: React.FC<FreeCarSearchModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ExternalCarLookupResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [imageFailed, setImageFailed] = useState(false);
   const [popularSearches] = useState([
     'Toyota RAV4',
     'Lexus RX 350',
@@ -77,6 +78,7 @@ export const FreeCarSearchModal: React.FC<FreeCarSearchModalProps> = ({
 
     setLoading(true);
     setError(null);
+    setImageFailed(false);
     try {
       const data = await lookupCarWithImage(q);
       if (data) {
@@ -286,12 +288,13 @@ export const FreeCarSearchModal: React.FC<FreeCarSearchModalProps> = ({
               </div>
 
               {/* Large Image Pulled Directly from Free API */}
-              {result.imageUrl ? (
-                <div className="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-950 aspect-video max-h-[300px]">
+              {result.imageUrl && !imageFailed ? (
+                <div className="relative h-56 sm:h-72 rounded-2xl overflow-hidden border border-slate-200 bg-slate-100">
                   <img
                     src={result.imageUrl}
                     alt={result.title}
                     className="w-full h-full object-cover"
+                    onError={handleImageError}
                   />
                   <div className="absolute bottom-2.5 right-2.5 bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-semibold px-2 py-1 rounded-md">
                     Wikimedia Commons Media
@@ -299,7 +302,7 @@ export const FreeCarSearchModal: React.FC<FreeCarSearchModalProps> = ({
                 </div>
               ) : (
                 <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-xs text-slate-500">
-                  No photograph is published for this reference entry. Open the source article above for the full summary.
+                  {imageFailed ? 'The reference photograph could not be loaded. Open the source article above for the full summary.' : 'No photograph is published for this reference entry. Open the source article above for the full summary.'}
                 </div>
               )}
 

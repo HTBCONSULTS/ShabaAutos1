@@ -25,6 +25,8 @@ import {
   Calendar,
   LogOut,
   LayoutDashboard,
+  Info,
+  CircleHelp,
 } from 'lucide-react';
 import { ScreenId } from '../types';
 import { ShabaAutosLogo } from './ShabaAutosLogo';
@@ -731,6 +733,44 @@ export const Header: React.FC<HeaderProps> = ({
                         Let experts source your dream car
                       </div>
                     </div>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Company and customer-help links */}
+          <div className="shabaautos-dropdown">
+            <button
+              type="button"
+              onClick={() => handleToggleDropdown('company')}
+              className={`shabaautos-nav-link gap-1 ${
+                ['about', 'faq', 'policies-legal', 'policy-terms-and-conditions', 'policy-privacy', 'policy-refunds-and-cancellations', 'policy-dealer-membership', 'policy-rental-terms', 'policy-fees-and-charges'].includes(currentScreen) ? 'active' : ''
+              }`}
+              aria-haspopup="true"
+              aria-expanded={activeDropdown === 'company'}
+              aria-controls="company-help-menu"
+            >
+              <span>About &amp; Help</span>
+              <ChevronDown size={12} className={`text-[#12492f] transition-transform duration-200 ${activeDropdown === 'company' ? 'rotate-180' : ''}`} aria-hidden="true" />
+            </button>
+            {activeDropdown === 'company' && (
+              <div id="company-help-menu" className="shabaautos-dropdown-panel w-[270px]">
+                <div className="px-3 py-2 border-b border-[#e4e9e3] mb-1.5">
+                  <span className="text-[11px] font-bold text-[#12492f] uppercase tracking-wider">Company &amp; information</span>
+                </div>
+                <div className="space-y-0.5">
+                  <button type="button" onClick={() => handleNavClick('about')} className="shabaautos-dropdown-item">
+                    <Info size={15} className="text-[#158047] shrink-0" />
+                    <span>About ShabaAutos</span>
+                  </button>
+                  <button type="button" onClick={() => handleNavClick('faq')} className="shabaautos-dropdown-item">
+                    <CircleHelp size={15} className="text-[#158047] shrink-0" />
+                    <span>Frequently Asked Questions</span>
+                  </button>
+                  <button type="button" onClick={() => handleNavClick('policies-legal')} className="shabaautos-dropdown-item">
+                    <FileText size={15} className="text-[#158047] shrink-0" />
+                    <span>Policies &amp; Legal</span>
                   </button>
                 </div>
               </div>

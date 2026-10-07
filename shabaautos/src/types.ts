@@ -124,7 +124,16 @@ export type ScreenId =
   | 'order-tracking'
   | 'operations-dashboard'
   | 'auth'
-  | 'profile';
+  | 'profile'
+  | 'about'
+  | 'faq'
+  | 'policies-legal'
+  | 'policy-terms-and-conditions'
+  | 'policy-privacy'
+  | 'policy-refunds-and-cancellations'
+  | 'policy-dealer-membership'
+  | 'policy-rental-terms'
+  | 'policy-fees-and-charges';
 
 export type AppUserRole = 'customer' | 'staff' | 'admin';
 
