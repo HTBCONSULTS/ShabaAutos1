@@ -50,8 +50,8 @@
 .about-signoff span { font-family: Georgia, serif; font-size: 1.15rem; font-style: italic; }
 .faq-controls { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .faq-search { display: flex; width: min(100%, 600px); min-height: 3.25rem; align-items: center; gap: .7rem; padding: 0 .85rem; border: 1px solid #dae4dc; border-radius: 1rem; background: #fff; color: #63806c; box-shadow: 0 5px 18px rgba(18, 73, 47, .04); }
+.faq-search:focus-within { border-color: #158047; outline: 3px solid rgba(21, 128, 71, .32); outline-offset: 3px; }
 .faq-search input { flex: 1; min-width: 0; min-height: 2.75rem; border: 0 !important; outline: 0; background: transparent; box-shadow: none !important; color: #182a1f; font-size: .9rem; }
-.faq-search input:focus { outline: 0; }
 .faq-search button { border: 0; background: transparent; color: #12492f; font-size: .75rem; font-weight: 800; cursor: pointer; }
 .faq-result-count { margin: 0; color: #718076; font-size: .78rem; font-weight: 700; white-space: nowrap; }
 .faq-category-nav { display: flex; gap: .5rem; margin: 1rem 0 2rem; padding: .15rem .05rem .7rem; overflow-x: auto; scrollbar-width: thin; }
