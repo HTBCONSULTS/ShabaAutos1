@@ -227,7 +227,7 @@ export const RentCarScreen: React.FC<RentCarScreenProps> = ({ onNavigate }) => {
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] shaba-screen rent-screen font-sans">
-      <section className="rent-mobile-page sm:hidden font-sans">
+      <section className="rent-mobile-page shaba-about-style-hero sm:hidden font-sans">
         <div className="rent-mobile-topbar">
           <button type="button" onClick={() => onNavigate('home')} aria-label="Back to home"><ArrowLeft className="w-5 h-5" /></button>
           <div><small>SHABAAUTOS RENTALS</small><strong>Find your ride</strong></div>
@@ -248,17 +248,8 @@ export const RentCarScreen: React.FC<RentCarScreenProps> = ({ onNavigate }) => {
         <div className="rent-mobile-trust"><CheckCircle2 className="w-5 h-5" /><div><strong>Clear rental terms</strong><small>Transparent rates and support; cancellation terms apply.</small></div></div>
       </section>
       {/* Daylight Hero Section matching Web8.png */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-[#eef3f0] to-[#f4f7f5] pt-10 sm:pt-14 lg:pt-16 pb-16 sm:pb-20 border-b border-slate-200/80">
+      <section className="shaba-about-style-hero relative overflow-hidden bg-gradient-to-b from-[#eef3f0] to-[#f4f7f5] pt-10 sm:pt-14 lg:pt-16 pb-16 sm:pb-20 border-b border-slate-200/80">
         <div className="shaba-ambient shaba-ambient--one" aria-hidden="true" />
-        {/* Background Scenic Landscape */}
-        <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
-          <img
-            src="https://images.unsplash.com/photo-1477959858617-67f30bc75b82?auto=format&fit=crop&w=2000&q=80"
-            alt="Scenic City Skyline"
-            className="w-full h-full object-cover object-center mix-blend-multiply"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#f4f7f5] via-[#f4f7f5]/80 to-transparent" />
-        </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">

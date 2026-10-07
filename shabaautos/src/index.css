@@ -1562,3 +1562,34 @@ html.dark { color-scheme: dark; }
     gap: 10px;
   }
 }
+
+/* Reuse the About hero's soft radial glow and offset circle on Home and Rent. */
+.shaba-about-style-hero {
+  background-image:
+    radial-gradient(circle at calc(100% - max(-8rem, calc((100vw - 1240px) / 2)) - 9.5rem) calc(100% - 2.5rem), transparent 9.2rem, rgba(18, 73, 47, .1) 9.25rem 9.32rem, transparent 9.37rem),
+    radial-gradient(circle at 86% 16%, rgba(21, 128, 71, .13), transparent 24rem),
+    linear-gradient(120deg, #f1f7f2, #fbfcfb 68%) !important;
+}
+
+.dark .shaba-about-style-hero {
+  background-image:
+    radial-gradient(circle at calc(100% - max(-8rem, calc((100vw - 1240px) / 2)) - 9.5rem) calc(100% - 2.5rem), transparent 9.2rem, rgba(212, 231, 218, .14) 9.25rem 9.32rem, transparent 9.37rem),
+    radial-gradient(circle at 86% 16%, rgba(35, 137, 83, .16), transparent 24rem),
+    linear-gradient(120deg, #101914, #0d1410 68%) !important;
+}
+
+@media (max-width: 639px) {
+  .shaba-about-style-hero {
+    background-image:
+      radial-gradient(circle at calc(100% - 1.5rem) 7rem, transparent 9.2rem, rgba(18, 73, 47, .1) 9.25rem 9.32rem, transparent 9.37rem),
+      radial-gradient(circle at 86% 16%, rgba(21, 128, 71, .13), transparent 24rem),
+      linear-gradient(120deg, #f1f7f2, #fbfcfb 68%) !important;
+  }
+
+  .dark .shaba-about-style-hero {
+    background-image:
+      radial-gradient(circle at calc(100% - 1.5rem) 7rem, transparent 9.2rem, rgba(212, 231, 218, .14) 9.25rem 9.32rem, transparent 9.37rem),
+      radial-gradient(circle at 86% 16%, rgba(35, 137, 83, .16), transparent 24rem),
+      linear-gradient(120deg, #101914, #0d1410 68%) !important;
+  }
+}
