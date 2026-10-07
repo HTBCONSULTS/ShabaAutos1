@@ -800,10 +800,11 @@ export const Header: React.FC<HeaderProps> = ({
               href={phoneHref}
               className="shabaautos-contact-btn"
               title={`Call ${phone}`}
+              aria-label={`Call ${phone}`}
             >
               <Phone size={13} className="text-[#158047]" />
-              <span className="hidden xl:inline">{phone}</span>
-              <span className="inline xl:hidden text-[11px] font-bold">Call</span>
+              <span className="shabaautos-contact-number hidden xl:inline">{phone}</span>
+              <span className="shabaautos-contact-call inline xl:hidden text-[11px] font-bold">Call</span>
             </a>
           )}
 
