@@ -23,6 +23,8 @@
   pointer-events: none;
 }
 .content-page-hero .content-page-wrap { position: relative; z-index: 1; }
+.about-page .content-page-hero { isolation: isolate; background: radial-gradient(circle at 86% 16%, rgba(21, 128, 71, .13), transparent 24rem), linear-gradient(120deg, #f1f7f2, #fbfcfb 68%); }
+.about-page .content-page-hero::before { position: absolute; z-index: 0; top: 0; right: 0; bottom: 0; width: min(64%, 820px); background-image: linear-gradient(90deg, rgba(241, 247, 242, 0) 0%, rgba(241, 247, 242, .08) 100%), url('../assets/images/bmw_silver_coupe_1789257180258.jpg'); background-position: 52% 58%; background-size: cover; content: ""; opacity: .78; pointer-events: none; mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, .45) 22%, #000 48%); }
 .content-breadcrumbs { display: flex; align-items: center; gap: .65rem; min-height: 2rem; margin-bottom: 1.8rem; color: #6c7b71; font-size: .78rem; font-weight: 700; }
 .content-breadcrumbs a { color: inherit; text-decoration: none; }
 .content-breadcrumb-home, .content-breadcrumb-back { display: inline-flex; align-items: center; gap: .35rem; }
@@ -119,6 +121,55 @@
 .legal-help-link { display: flex; flex-wrap: wrap; align-items: center; gap: .7rem; margin-top: 1.5rem; padding: 1rem 1.1rem; border: 1px solid #dce7de; border-radius: .9rem; background: #f9fcf9; color: #587061; }
 .legal-help-link > svg { flex: 0 0 auto; color: #158047; }
 .legal-help-link p { flex: 1 1 300px; margin: 0; font-size: .82rem; line-height: 1.6; }
+
+/* Content pages use the same dark palette as the rest of the ShabaAutos app. */
+.dark .content-page { background: #0c120f; color: #e7ede8; }
+.dark .content-page-hero { border-bottom-color: rgba(255, 255, 255, .08); background: radial-gradient(circle at 86% 16%, rgba(35, 137, 83, .16), transparent 24rem), linear-gradient(120deg, #101914, #0d1410 68%); }
+.dark .content-page-hero::after { border-color: rgba(212, 231, 218, .14); }
+.dark .content-page-hero h1 { color: #eef4ef; }
+.dark .content-intro, .dark .content-breadcrumbs { color: #aab7ae; }
+.dark .content-breadcrumbs a:hover, .dark .content-text-link { color: #86efac; }
+.dark .content-eyebrow { color: #6ee7a8; }
+.dark .content-button-secondary { border-color: #314137; background: #151d19; color: #d8e6dc; }
+.dark .content-button-secondary:hover { border-color: #477253; background: #1b2820; }
+.dark .about-page .content-page-hero::before { filter: brightness(.72) saturate(.85); opacity: .48; }
+.dark .about-copy-panel, .dark .faq-search, .dark .faq-item, .dark .faq-empty-state,
+.dark .faq-resource-panel, .dark .policy-link-card, .dark .policy-shared-notices,
+.dark .policy-document { border-color: #26332c; background: #131a16; box-shadow: 0 10px 28px rgba(0, 0, 0, .25); }
+.dark .about-copy-panel h2, .dark .faq-category-heading h2, .dark .faq-item summary,
+.dark .faq-empty-state h2, .dark .faq-resource-panel h2, .dark .policy-link-card h2,
+.dark .policy-shared-heading h2, .dark .policy-prose h2, .dark .policy-prose h3,
+.dark .policy-prose h4 { color: #e7ede8; }
+.dark .about-copy-panel p:not(.content-eyebrow), .dark .faq-answer, .dark .faq-empty-state p,
+.dark .faq-resource-panel p:not(.content-eyebrow), .dark .policy-link-card p,
+.dark .policy-prose { color: #bac7be; }
+.dark .about-copy-panel .about-signoff { color: #86efac !important; }
+.dark .about-copy-accent { background: linear-gradient(#34d399, #1b3525); }
+.dark .faq-search { border-color: #2a3730; background: #131a16; color: #86efac; }
+.dark .faq-search input { background-color: transparent !important; color: #eef4ef !important; }
+.dark .faq-search:focus-within { border-color: #34d399; outline-color: rgba(52, 211, 153, .36); }
+.dark .faq-search button, .dark .faq-result-count { color: #aab7ae; }
+.dark .faq-category-chip { border-color: #2a3730; background: #131a16; color: #c6d1ca; }
+.dark .faq-category-chip:hover { border-color: #6ee7a8; color: #86efac; }
+.dark .faq-category-chip.is-active { border-color: #166534; background: #166534; color: #fff; }
+.dark .faq-category-heading > span { background: rgba(16, 94, 58, .34); color: #86efac; }
+.dark .faq-item[open] { border-color: #355240; }
+.dark .faq-toggle-mark { background: #1b2d22; }
+.dark .faq-toggle-mark::before, .dark .faq-toggle-mark::after { background: #86efac; }
+.dark .faq-still-help { border-color: #263b2d; background: linear-gradient(120deg, #122018, #131a16); color: #bac7be; }
+.dark .faq-empty-state { border-color: #314137; }
+.dark .faq-resource-links a { border-color: #2a3730; color: #c6d1ca; }
+.dark .faq-resource-links a:hover { border-color: #477253; background: #17231b; color: #86efac; }
+.dark .faq-source-notice { border-left-color: #4c9d68; background: #142019; color: #bac7be; }
+.dark .legal-date-notice { border-color: #26332c; background: #131a16; color: #bac7be; }
+.dark .legal-date-notice strong { color: #e7ede8; }
+.dark .policy-link-card-top { color: #6ee7a8; }
+.dark .policy-link-card-top > span, .dark .policy-link-card-action { color: #86efac; }
+.dark .policy-link-card:hover { border-color: #477253; }
+.dark .policy-document-icon { background: rgba(16, 94, 58, .34); color: #86efac; }
+.dark .legal-help-link { border-color: #26332c; background: #131a16; color: #bac7be; }
+.dark .legal-help-link > svg { color: #6ee7a8; }
+
 @media (max-width: 760px) {
   .policy-link-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .faq-resource-panel { grid-template-columns: 1fr; gap: 1.1rem; }
@@ -129,6 +180,8 @@
   .faq-controls { align-items: flex-start; flex-direction: column; gap: .45rem; }
   .faq-search { width: 100%; }
   .faq-category-nav { margin: .85rem 0 1.5rem; }
+  .about-page .content-page-hero::before { width: 72%; background-position: 52% 56%; opacity: .42; mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, .25) 28%, #000 70%); }
+  .dark .about-page .content-page-hero::before { opacity: .26; }
   .faq-item summary { padding: .82rem .8rem; font-size: .83rem; }
   .faq-answer { padding: 0 .8rem .9rem; font-size: .82rem; }
   .faq-resource-links { grid-template-columns: 1fr; }

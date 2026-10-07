@@ -1386,19 +1386,23 @@ html.dark { color-scheme: dark; }
   height: 4rem;
 }
 
-/* Between 1280px and 1439px the full desktop nav used to overflow its
-   container and collide with the Wishlist / Compare controls. Tighten the
-   spacing in that band only; 1440px and up keeps the roomier layout. */
+/* Compact desktop widths need a tighter link rhythm so the last nav item
+   stays separate from the Wishlist / Compare controls. */
 @media (min-width: 1280px) and (max-width: 1439px) {
   .shabaautos-nav {
-    gap: 2px;
+    gap: 0;
     margin-left: 4px;
+    justify-content: space-between;
   }
 
   .shabaautos-nav-link {
-    padding-left: 5px;
-    padding-right: 5px;
-    font-size: 12px;
+    padding-left: 1px;
+    padding-right: 1px;
+    font-size: 11px;
+  }
+
+  .shabaautos-nav .shabaautos-nav-link {
+    gap: 2px;
   }
 
   .shabaautos-header-contact {
@@ -1409,5 +1413,26 @@ html.dark { color-scheme: dark; }
   .shabaautos-badge-btn {
     padding-left: 3px;
     padding-right: 3px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .shabaautos-nav {
+    gap: 4px;
+    justify-content: space-between;
+  }
+
+  .shabaautos-nav-link {
+    padding-left: 5px;
+    padding-right: 5px;
+    font-size: 12px;
+  }
+
+  .shabaautos-nav .shabaautos-nav-link {
+    gap: 2px;
+  }
+
+  .shabaautos-header-contact {
+    gap: 10px;
   }
 }

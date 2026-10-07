@@ -60,12 +60,13 @@ interface ContentPageLayoutProps {
   intro: string;
   onNavigate: (screen: ScreenId) => void;
   backLink?: { screen: ScreenId; label: string };
+  pageClassName?: string;
   children: React.ReactNode;
 }
 
-export function ContentPageLayout({ eyebrow, title, intro, onNavigate, backLink, children }: ContentPageLayoutProps) {
+export function ContentPageLayout({ eyebrow, title, intro, onNavigate, backLink, pageClassName, children }: ContentPageLayoutProps) {
   return (
-    <div className="content-page">
+    <div className={`content-page${pageClassName ? ` ${pageClassName}` : ''}`}>
       <section className="content-page-hero">
         <div className="content-page-wrap">
           <nav className="content-breadcrumbs" aria-label="Breadcrumb">

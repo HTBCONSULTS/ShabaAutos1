@@ -16,6 +16,7 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
       title="About ShabaAutos"
       intro="ShabaAutos is a trusted automotive marketplace helping customers buy, sell, rent and import quality vehicles with greater confidence and convenience."
       onNavigate={onNavigate}
+      pageClassName="about-page"
     >
       <section className="about-copy-panel" aria-label="About ShabaAutos">
         <div className="about-copy-accent" aria-hidden="true" />
