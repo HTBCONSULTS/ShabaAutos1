@@ -21,11 +21,19 @@ import { MobileProfileScreen } from './views/MobileProfileScreen';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { MobileSidebar } from './components/MobileSidebar';
 import { SupportBlob } from './components/SupportBlob';
+import { AboutPage } from './views/AboutPage';
+import { FAQPage } from './views/FAQPage';
+import { PoliciesLegalPage } from './views/PoliciesLegalPage';
+import { PolicyDocumentPage } from './views/PolicyDocumentPage';
+import { TermsAcceptanceGate } from './views/TermsAcceptanceGate';
+import { pathForScreen, screenForPath } from './utils/contentRoutes';
+import './views/content-pages.css';
 
 export default function App() {
   const initialCarId = typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('carId');
   const initialTrackingId = typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('trackingId');
-  const [currentScreen, setCurrentScreen] = useState<ScreenId>(initialCarId ? 'car-details' : initialTrackingId ? 'order-tracking' : 'home');
+  const initialRouteScreen = typeof window === 'undefined' ? undefined : screenForPath(window.location.pathname);
+  const [currentScreen, setCurrentScreen] = useState<ScreenId>(initialRouteScreen && initialRouteScreen !== 'home' ? initialRouteScreen : initialCarId ? 'car-details' : initialTrackingId ? 'order-tracking' : 'home');
   const [selectedCarId, setSelectedCarId] = useState<string>(initialCarId || '');
   const [selectedCar, setSelectedCar] = useState<Car | undefined>();
   const [previousScreen, setPreviousScreen] = useState<ScreenId>('home');
@@ -34,7 +42,41 @@ export default function App() {
   const [savedCarIds, setSavedCarIds] = useState<string[]>([]);
   const [compareCount, setCompareCount] = useState(0);
   const [savedError, setSavedError] = useState('');
-  const { user, isSignedIn, isLoaded } = useAuthUser();
+  const {
+    user,
+    isSignedIn,
+    isLoaded,
+    accountProfileStatus,
+    refreshAccountProfile,
+    acceptTermsAndConditions,
+    signOut,
+  } = useAuthUser();
+
+  useEffect(() => {
+    const syncScreenFromLocation = () => {
+      const url = new URL(window.location.href);
+      const routeScreen = screenForPath(url.pathname);
+      if (routeScreen && routeScreen !== 'home') {
+        setCurrentScreen(routeScreen);
+        setSelectedCarId('');
+        return;
+      }
+      const carId = url.searchParams.get('carId');
+      const trackingId = url.searchParams.get('trackingId');
+      if (carId) {
+        setSelectedCarId(carId);
+        setCurrentScreen('car-details');
+      } else if (trackingId) {
+        setSelectedCarId('');
+        setCurrentScreen('order-tracking');
+      } else {
+        setSelectedCarId('');
+        setCurrentScreen(routeScreen ?? 'home');
+      }
+    };
+    window.addEventListener('popstate', syncScreenFromLocation);
+    return () => window.removeEventListener('popstate', syncScreenFromLocation);
+  }, []);
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn || !user) {
@@ -71,31 +113,43 @@ export default function App() {
 
   const handleNavigate = (screen: ScreenId) => {
     setMobileMenuOpen(false);
-    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('carId')) {
-      window.history.replaceState(null, '', window.location.pathname);
-    }
-    if (screen !== 'order-tracking' && screen !== 'auth' && typeof window !== 'undefined') {
-      const url = new URL(window.location.href);
-      if (url.searchParams.has('trackingId')) {
-        url.searchParams.delete('trackingId');
-        window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
-      }
-    }
+    let nextScreen = screen;
     if (screen === 'car-details-rav4') {
-      window.history.replaceState(null, '', `${window.location.pathname}?search=RAV4`);
-      setCurrentScreen('buy-cars');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
+      nextScreen = 'buy-cars';
     }
-    if (screen === 'car-details') {
-      setCurrentScreen(selectedCarId ? 'car-details' : 'buy-cars');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
+    if (screen === 'car-details' && !selectedCarId) {
+      nextScreen = 'buy-cars';
     }
     if (screen === 'auth') {
       setPreviousScreen(currentScreen);
     }
-    setCurrentScreen(screen);
+
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.pathname = pathForScreen(nextScreen);
+      if (screen === 'car-details-rav4') {
+        url.search = '';
+        url.searchParams.set('search', 'RAV4');
+        url.hash = '';
+      } else if (nextScreen === 'buy-cars') {
+        url.searchParams.delete('carId');
+        url.searchParams.delete('trackingId');
+      } else if (nextScreen === 'car-details') {
+        url.searchParams.delete('trackingId');
+        if (selectedCarId) url.searchParams.set('carId', selectedCarId);
+      } else if (nextScreen === 'order-tracking') {
+        url.searchParams.delete('carId');
+      } else {
+        url.search = '';
+        url.hash = '';
+      }
+      const nextUrl = `${url.pathname}${url.search}${url.hash}`;
+      if (nextUrl !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
+        window.history.pushState({}, '', nextUrl);
+      }
+    }
+
+    setCurrentScreen(nextScreen);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -104,9 +158,31 @@ export default function App() {
     setSelectedCarId(carId);
     setSelectedCar(car);
     setCurrentScreen('car-details');
-    window.history.replaceState(null, '', `${window.location.pathname}?carId=${encodeURIComponent(carId)}`);
+    window.history.replaceState(null, '', `/?carId=${encodeURIComponent(carId)}`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  if (isSignedIn && isLoaded && accountProfileStatus !== 'ready') {
+    return (
+      <TermsAcceptanceGate
+        status={accountProfileStatus}
+        onAccept={acceptTermsAndConditions}
+        onRetry={refreshAccountProfile}
+        onSignOut={signOut}
+      />
+    );
+  }
+
+  if (isSignedIn && user?.termsRequired && !user.termsAcceptedAt) {
+    return (
+      <TermsAcceptanceGate
+        status="required"
+        onAccept={acceptTermsAndConditions}
+        onRetry={refreshAccountProfile}
+        onSignOut={signOut}
+      />
+    );
+  }
 
   return (
     <div className="w-full max-w-full min-w-0 overflow-x-clip min-h-screen flex flex-col bg-[#f8f9fa] text-gray-900 font-sans antialiased selection:bg-emerald-100 selection:text-emerald-900">
@@ -125,6 +201,16 @@ export default function App() {
       {/* Main Screen Views with bottom safe padding on mobile and tablet for the bottom nav bar */}
       <main key={currentScreen} className="shaba-page-transition flex-1 pb-20 lg:pb-0 min-w-0 w-full max-w-full">
         <ErrorBoundary>
+        {currentScreen === 'about' && <AboutPage onNavigate={handleNavigate} />}
+
+        {currentScreen === 'faq' && <FAQPage onNavigate={handleNavigate} />}
+
+        {currentScreen === 'policies-legal' && <PoliciesLegalPage onNavigate={handleNavigate} />}
+
+        {currentScreen.startsWith('policy-') && (
+          <PolicyDocumentPage screen={currentScreen} onNavigate={handleNavigate} />
+        )}
+
         {currentScreen === 'home' && (
           <HomeScreen
             onNavigate={handleNavigate}
@@ -189,7 +275,7 @@ export default function App() {
         {currentScreen === 'auth' && (
           <AuthModalScreen
             onNavigate={handleNavigate}
-            onClose={() => setCurrentScreen(previousScreen)}
+            onClose={() => handleNavigate(previousScreen)}
             previousScreen={previousScreen}
           />
         )}

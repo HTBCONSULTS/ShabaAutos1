@@ -361,6 +361,9 @@ app.get('/api/auth/me', requireAuth, async (req: Request, res: Response) => {
         phone: user.phone,
         role: user.role,
         avatarUrl: user.avatarUrl,
+        termsRequired: user.termsRequired,
+        termsAcceptedAt: user.termsAcceptedAt,
+        termsVersion: user.termsVersion,
       },
     });
   } catch (err: any) {
@@ -368,9 +371,37 @@ app.get('/api/auth/me', requireAuth, async (req: Request, res: Response) => {
   }
 });
 
+const CURRENT_TERMS_AND_CONDITIONS_VERSION = 'shabaautos-terms-v1';
+
+app.post('/api/me/terms-acceptance', requireAuth, async (req: Request, res: Response) => {
+  try {
+    if (req.body?.accepted !== true) {
+      return res.status(400).json({ success: false, message: 'You must confirm acceptance to continue.' });
+    }
+
+    const updated = await dbService.users.update(req.user!.id, {
+      termsRequired: false,
+      termsAcceptedAt: new Date().toISOString(),
+      termsVersion: CURRENT_TERMS_AND_CONDITIONS_VERSION,
+    });
+    if (!updated) return res.status(404).json({ success: false, message: 'Account profile could not be found.' });
+
+    res.json({
+      success: true,
+      user: {
+        termsRequired: updated.termsRequired,
+        termsAcceptedAt: updated.termsAcceptedAt,
+        termsVersion: updated.termsVersion,
+      },
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message || 'Terms acceptance could not be saved.' });
+  }
+});
+
 app.post('/api/auth/sync', requireAuth, async (req: Request, res: Response) => {
   try {
-    const { fullName, phone } = req.body;
+    const { fullName, phone } = req.body || {};
     const updates: any = {};
 
     if (fullName && typeof fullName === 'string') {
@@ -391,6 +422,7 @@ app.post('/api/auth/sync', requireAuth, async (req: Request, res: Response) => {
     }
 
     const updated = await dbService.users.update(req.user!.id, updates);
+    if (!updated) return res.status(404).json({ success: false, message: 'Account profile could not be found.' });
     res.json({
       success: true,
       message: 'Profile synchronized successfully',

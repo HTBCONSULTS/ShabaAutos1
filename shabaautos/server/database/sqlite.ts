@@ -51,6 +51,9 @@ export function initializeDatabaseSchema(db: DatabaseSync): void {
         role TEXT NOT NULL CHECK(role IN ('customer', 'staff', 'admin')),
         status TEXT NOT NULL CHECK(status IN ('active', 'suspended', 'pending')),
         avatar_url TEXT,
+        terms_required INTEGER NOT NULL DEFAULT 0,
+        terms_accepted_at TEXT,
+        terms_version TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
       );
@@ -587,6 +590,16 @@ export function initializeDatabaseSchema(db: DatabaseSync): void {
 
     db.prepare('INSERT INTO _migrations (name, applied_at) VALUES (?, ?)').run(
       '003_dynamic_platform_upgrade',
+      new Date().toISOString()
+    );
+  }
+
+  if (!applied.has('004_terms_acceptance')) {
+    try { db.exec(`ALTER TABLE users ADD COLUMN terms_required INTEGER NOT NULL DEFAULT 0;`); } catch {}
+    try { db.exec(`ALTER TABLE users ADD COLUMN terms_accepted_at TEXT;`); } catch {}
+    try { db.exec(`ALTER TABLE users ADD COLUMN terms_version TEXT;`); } catch {}
+    db.prepare('INSERT INTO _migrations (name, applied_at) VALUES (?, ?)').run(
+      '004_terms_acceptance',
       new Date().toISOString()
     );
   }

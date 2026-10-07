@@ -84,6 +84,9 @@ export class PostgresUserRepository implements IUserRepository {
       role: r.role,
       status: r.status,
       avatarUrl: r.avatar_url || undefined,
+      termsRequired: Boolean(r.terms_required),
+      termsAcceptedAt: r.terms_accepted_at ? toIso(r.terms_accepted_at) : undefined,
+      termsVersion: r.terms_version || undefined,
       createdAt: toIso(r.created_at),
       updatedAt: toIso(r.updated_at),
     };
@@ -111,6 +114,7 @@ export class PostgresUserRepository implements IUserRepository {
     phone?: string;
     avatarUrl?: string;
     role?: 'customer' | 'staff' | 'admin';
+    requireTermsAcceptance?: boolean;
   }): Promise<User> {
     const existing = await this.findByClerkId(data.clerkId) || await this.findByEmail(data.email);
     const now = new Date().toISOString();
@@ -137,8 +141,8 @@ export class PostgresUserRepository implements IUserRepository {
 
     const id = data.clerkId.startsWith('user_') ? data.clerkId : `usr_${crypto.randomUUID()}`;
     const q = `
-      INSERT INTO users (id, clerk_id, email, password_hash, full_name, phone, role, status, avatar_url, created_at, updated_at)
-      VALUES ($1, $2, $3, '', $4, $5, $6, 'active', $7, $8, $8)
+      INSERT INTO users (id, clerk_id, email, password_hash, full_name, phone, role, status, avatar_url, terms_required, terms_accepted_at, terms_version, created_at, updated_at)
+      VALUES ($1, $2, $3, '', $4, $5, $6, 'active', $7, $8, NULL, NULL, $9, $9)
       RETURNING *
     `;
     const res = await this.pool.query(q, [
@@ -149,6 +153,7 @@ export class PostgresUserRepository implements IUserRepository {
       data.phone || '',
       data.role || 'customer',
       data.avatarUrl || null,
+      data.requireTermsAcceptance ?? true,
       now,
     ]);
     return this.mapUser(res.rows[0]);
@@ -163,8 +168,8 @@ export class PostgresUserRepository implements IUserRepository {
     const id = `usr_${crypto.randomUUID()}`;
     const now = new Date().toISOString();
     const q = `
-      INSERT INTO users (id, email, password_hash, full_name, phone, role, status, avatar_url, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      INSERT INTO users (id, email, password_hash, full_name, phone, role, status, avatar_url, terms_required, terms_accepted_at, terms_version, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
       RETURNING *
     `;
     const res = await this.pool.query(q, [
@@ -176,6 +181,9 @@ export class PostgresUserRepository implements IUserRepository {
       user.role,
       user.status,
       user.avatarUrl || null,
+      user.termsRequired ?? false,
+      user.termsAcceptedAt || null,
+      user.termsVersion || null,
       now,
       now,
     ]);
@@ -189,8 +197,9 @@ export class PostgresUserRepository implements IUserRepository {
     const merged = { ...existing, ...updates, updatedAt: new Date().toISOString() };
     const q = `
       UPDATE users
-      SET email = $1, full_name = $2, phone = $3, role = $4, status = $5, avatar_url = $6, updated_at = $7
-      WHERE id = $8
+      SET email = $1, full_name = $2, phone = $3, role = $4, status = $5, avatar_url = $6,
+          terms_required = $7, terms_accepted_at = $8, terms_version = $9, updated_at = $10
+      WHERE id = $11
       RETURNING *
     `;
     const res = await this.pool.query(q, [
@@ -200,6 +209,9 @@ export class PostgresUserRepository implements IUserRepository {
       merged.role,
       merged.status,
       merged.avatarUrl || null,
+      merged.termsRequired ?? false,
+      merged.termsAcceptedAt || null,
+      merged.termsVersion || null,
       merged.updatedAt,
       id,
     ]);

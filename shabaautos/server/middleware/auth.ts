@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { verifyToken } from '@clerk/express';
+import { createClerkClient, verifyToken } from '@clerk/express';
 import { getDatabaseService } from '../database/index';
 import { UserRole } from '../models/types';
 
@@ -11,6 +11,9 @@ export interface AuthenticatedUser {
   phone: string;
   role: UserRole;
   avatarUrl?: string;
+  termsRequired: boolean;
+  termsAcceptedAt?: string;
+  termsVersion?: string;
 }
 
 declare global {
@@ -59,8 +62,21 @@ export async function getAuthenticatedClerkUser(req: Request): Promise<Authentic
       let dbUser = await dbService.users.findByClerkId(clerkId);
 
       // Extract metadata or claims
-      const email = decoded.email || decoded.email_addresses?.[0] || dbUser?.email || '';
-      const fullName = decoded.name || [decoded.first_name, decoded.last_name].filter(Boolean).join(' ') || dbUser?.fullName || 'Valued Customer';
+      let email = decoded.email || decoded.email_addresses?.[0] || dbUser?.email || '';
+      let fullName = decoded.name || [decoded.first_name, decoded.last_name].filter(Boolean).join(' ') || dbUser?.fullName || 'Valued Customer';
+
+      if (!dbUser) {
+        try {
+          const clerkProfile = await createClerkClient({ secretKey }).users.getUser(clerkId);
+          const verifiedPrimaryEmail = clerkProfile.emailAddresses.find(
+            (address) => address.id === clerkProfile.primaryEmailAddressId && address.verification?.status === 'verified'
+          ) || clerkProfile.emailAddresses.find((address) => address.verification?.status === 'verified');
+          if (verifiedPrimaryEmail) email = verifiedPrimaryEmail.emailAddress;
+          fullName = [clerkProfile.firstName, clerkProfile.lastName].filter(Boolean).join(' ') || fullName;
+        } catch {
+          // A signed session claim may still provide the verified email if the profile lookup is temporarily unavailable.
+        }
+      }
       
       // Determine role from metadata or DB (roles must only be assigned by server/admin)
       const claimRole = (decoded.metadata?.role || decoded.public_metadata?.role) as UserRole | undefined;
@@ -85,6 +101,9 @@ export async function getAuthenticatedClerkUser(req: Request): Promise<Authentic
         phone: dbUser?.phone || '',
         role: effectiveRole,
         avatarUrl: dbUser?.avatarUrl || decoded.image_url,
+        termsRequired: dbUser?.termsRequired ?? true,
+        termsAcceptedAt: dbUser?.termsAcceptedAt,
+        termsVersion: dbUser?.termsVersion,
       };
     } catch (err) {
       // If token verification fails in live mode and we're not in demo mode, reject
@@ -126,6 +145,7 @@ export async function getAuthenticatedClerkUser(req: Request): Promise<Authentic
             fullName,
             phone,
             role,
+            requireTermsAcceptance: false,
           });
         }
 
@@ -137,6 +157,9 @@ export async function getAuthenticatedClerkUser(req: Request): Promise<Authentic
           phone: dbUser.phone,
           role: dbUser.role,
           avatarUrl: dbUser.avatarUrl,
+          termsRequired: dbUser.termsRequired ?? false,
+          termsAcceptedAt: dbUser.termsAcceptedAt,
+          termsVersion: dbUser.termsVersion,
         };
       }
     } catch {
@@ -159,6 +182,19 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
         success: false,
         message: 'Authentication required. Please sign in to access this ShabaAutos service.',
         code: 'UNAUTHORIZED',
+      });
+    }
+
+    const allowedBeforeTermsAcceptance = new Set([
+      'GET /api/auth/me',
+      'POST /api/auth/sync',
+      'POST /api/me/terms-acceptance',
+    ]);
+    if (user.termsRequired && !user.termsAcceptedAt && !allowedBeforeTermsAcceptance.has(`${req.method} ${req.path}`)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Please accept the Terms & Conditions before continuing.',
+        code: 'TERMS_ACCEPTANCE_REQUIRED',
       });
     }
 

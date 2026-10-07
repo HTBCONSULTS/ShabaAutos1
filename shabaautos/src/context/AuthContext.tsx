@@ -1,12 +1,15 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { ClerkProvider, useUser, useAuth as useClerkAuth, useSignIn, useSignUp, useClerk } from '@clerk/clerk-react';
 import { AppUser, AppUserRole } from '../types';
-import { setAuthTokenGetter, syncUserProfile, fetchAuthMe, type AuthMeUser } from '../services/api';
+import { setAuthTokenGetter, syncUserProfile, fetchAuthMe, acceptCurrentTerms as submitTermsAcceptance, type AuthMeUser } from '../services/api';
 
 export interface AuthContextType {
   user: AppUser | null;
   isSignedIn: boolean;
   isLoaded: boolean;
+  accountProfileStatus: 'ready' | 'loading' | 'error';
+  refreshAccountProfile: () => Promise<boolean>;
+  acceptTermsAndConditions: () => Promise<{ success: boolean; error?: string }>;
   role: AppUserRole;
   token: string | null;
   getToken: () => Promise<string | null>;
@@ -156,6 +159,7 @@ function DemoAuthProvider({ children }: { children: ReactNode }) {
       fullName: tempUserData?.fullName || 'Valued Customer',
       phone: tempUserData?.phone || '+234 810 123 4567',
       role: 'customer',
+      termsRequired: true,
     };
     setCurrentUser(createdUser);
     setPendingVerification(null);
@@ -193,12 +197,29 @@ function DemoAuthProvider({ children }: { children: ReactNode }) {
     setCurrentUser(null);
   };
 
+  const acceptTermsAndConditions = async () => {
+    const response = await submitTermsAcceptance();
+    if (!response.success) {
+      return { success: false, error: response.message || 'Terms acceptance could not be saved. Please try again.' };
+    }
+    setCurrentUser((current) => current ? {
+      ...current,
+      termsRequired: false,
+      termsAcceptedAt: response.user?.termsAcceptedAt || new Date().toISOString(),
+      termsVersion: response.user?.termsVersion,
+    } : current);
+    return { success: true };
+  };
+
   return (
     <AuthContext.Provider
       value={{
         user: currentUser,
         isSignedIn: Boolean(currentUser),
         isLoaded: true,
+        accountProfileStatus: 'ready',
+        refreshAccountProfile: async () => true,
+        acceptTermsAndConditions,
         role: currentUser?.role || 'customer',
         token,
         getToken,
@@ -249,20 +270,44 @@ function ClerkAuthInner({ children }: { children: ReactNode }) {
   // A promotion made in the admin dashboard or directly in the database is then
   // reflected on the next page load instead of being masked by Clerk metadata.
   const [serverProfile, setServerProfile] = useState<AuthMeUser | null>(null);
+  const [accountProfileStatus, setAccountProfileStatus] = useState<'ready' | 'loading' | 'error'>('loading');
+
+  const refreshAccountProfile = useCallback(async () => {
+    if (!isSignedIn) return false;
+    setAccountProfileStatus('loading');
+    const response = await fetchAuthMe();
+    if (response.success && response.user?.email) {
+      setServerProfile(response.user);
+      setAccountProfileStatus('ready');
+      return true;
+    }
+    setAccountProfileStatus('error');
+    return false;
+  }, [isSignedIn]);
+
   useEffect(() => {
     let active = true;
+    if (!userLoaded) return () => { active = false; };
     if (!isSignedIn) {
       setServerProfile(null);
+      setAccountProfileStatus('ready');
       return () => { active = false; };
     }
+    setAccountProfileStatus('loading');
     (async () => {
       const response = await fetchAuthMe();
-      if (active && response.success && response.user) {
+      if (!active) return;
+      if (response.success && response.user?.email) {
         setServerProfile(response.user);
+        setAccountProfileStatus('ready');
+      } else {
+        setAccountProfileStatus('error');
       }
-    })();
+    })().catch(() => {
+      if (active) setAccountProfileStatus('error');
+    });
     return () => { active = false; };
-  }, [isSignedIn, userId]);
+  }, [isSignedIn, userId, userLoaded]);
   // Derive the normalized app user from the database profile, falling back to Clerk.
   const userRole: AppUserRole =
     (serverProfile?.role as AppUserRole) ||
@@ -277,23 +322,28 @@ function ClerkAuthInner({ children }: { children: ReactNode }) {
         phone: serverProfile?.phone || (clerkUser.unsafeMetadata?.phone as string | undefined) || clerkUser.primaryPhoneNumber?.phoneNumber || '',
         role: userRole,
         avatarUrl: serverProfile?.avatarUrl || clerkUser.imageUrl,
+        termsRequired: serverProfile?.termsRequired ?? false,
+        termsAcceptedAt: serverProfile?.termsAcceptedAt,
+        termsVersion: serverProfile?.termsVersion,
       }
     : null;
 
   // Sync profile with backend when user logs in
   useEffect(() => {
-    if (mappedUser && isSignedIn) {
+    if (mappedUser && serverProfile?.email && isSignedIn) {
       syncUserProfile({
         clerkId: mappedUser.clerkId,
         email: mappedUser.email,
         fullName: mappedUser.fullName,
         phone: mappedUser.phone,
         role: mappedUser.role,
+      }).then((response) => {
+        if (response.success) void refreshAccountProfile();
       }).catch(() => {
-        // Handled silently
+        // Handled silently; account access remains gated until status is verified.
       });
     }
-  }, [clerkUser?.id, isSignedIn]);
+  }, [clerkUser?.id, isSignedIn, serverProfile?.id, refreshAccountProfile]);
 
   const signInWithPassword = async (email: string, pass: string) => {
     if (!signInLoaded || !signIn) {
@@ -428,12 +478,27 @@ function ClerkAuthInner({ children }: { children: ReactNode }) {
     await clerk.signOut();
   };
 
+  const acceptTermsAndConditions = async () => {
+    const response = await submitTermsAcceptance();
+    if (!response.success) {
+      return { success: false, error: response.message || 'Terms acceptance could not be saved. Please try again.' };
+    }
+    const refreshed = await refreshAccountProfile();
+    if (!refreshed) {
+      return { success: false, error: 'Your acceptance was saved, but account access could not be refreshed. Please retry.' };
+    }
+    return { success: true };
+  };
+
   return (
     <AuthContext.Provider
       value={{
         user: mappedUser,
         isSignedIn: Boolean(isSignedIn),
         isLoaded: Boolean(userLoaded),
+        accountProfileStatus: isSignedIn && (!serverProfile?.email) && accountProfileStatus === 'ready' ? 'loading' : accountProfileStatus,
+        refreshAccountProfile,
+        acceptTermsAndConditions,
         role: userRole,
         token: null,
         getToken,

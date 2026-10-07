@@ -586,6 +586,16 @@ a:active {
   transform-origin: top right;
 }
 
+.shabaautos-company-dropdown-panel {
+  right: auto;
+  left: 0;
+  width: min(270px, calc(100vw - 2rem));
+  max-height: min(420px, calc(100vh - 6rem));
+  overflow-x: hidden;
+  overflow-y: auto;
+  transform-origin: top left;
+}
+
 .shabaautos-account-dropdown-panel .shabaautos-dropdown-item {
   min-width: 0;
   white-space: normal;
@@ -1168,6 +1178,9 @@ html.dark { color-scheme: dark; }
   background: #131a16;
   border-color: #26332c;
 }
+.dark .shabaautos-company-dropdown-panel .shabaautos-dropdown-item { color: #e7ede8; }
+.dark .shabaautos-company-dropdown-panel .shabaautos-dropdown-item:hover { background: #1b2823; color: #86efac; }
+.dark .shabaautos-company-dropdown-panel .shabaautos-dropdown-item > svg { color: #6ee7a8; }
 .dark #mobile-bottom-nav {
   background: rgba(13, 19, 16, 0.95) !important;
   border-top-color: rgba(255, 255, 255, 0.08) !important;
@@ -1386,19 +1399,23 @@ html.dark { color-scheme: dark; }
   height: 4rem;
 }
 
-/* Between 1280px and 1439px the full desktop nav used to overflow its
-   container and collide with the Wishlist / Compare controls. Tighten the
-   spacing in that band only; 1440px and up keeps the roomier layout. */
+/* Compact desktop widths need a tighter link rhythm so the last nav item
+   stays separate from the Wishlist / Compare controls. */
 @media (min-width: 1280px) and (max-width: 1439px) {
   .shabaautos-nav {
-    gap: 2px;
+    gap: 0;
     margin-left: 4px;
+    justify-content: space-between;
   }
 
   .shabaautos-nav-link {
-    padding-left: 5px;
-    padding-right: 5px;
-    font-size: 12px;
+    padding-left: 1px;
+    padding-right: 1px;
+    font-size: 11px;
+  }
+
+  .shabaautos-nav .shabaautos-nav-link {
+    gap: 2px;
   }
 
   .shabaautos-header-contact {
@@ -1409,5 +1426,26 @@ html.dark { color-scheme: dark; }
   .shabaautos-badge-btn {
     padding-left: 3px;
     padding-right: 3px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .shabaautos-nav {
+    gap: 4px;
+    justify-content: space-between;
+  }
+
+  .shabaautos-nav-link {
+    padding-left: 5px;
+    padding-right: 5px;
+    font-size: 12px;
+  }
+
+  .shabaautos-nav .shabaautos-nav-link {
+    gap: 2px;
+  }
+
+  .shabaautos-header-contact {
+    gap: 10px;
   }
 }

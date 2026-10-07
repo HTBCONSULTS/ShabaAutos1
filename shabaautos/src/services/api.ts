@@ -530,6 +530,9 @@ export interface AuthMeUser {
   phone: string;
   role: string;
   avatarUrl?: string | null;
+  termsRequired?: boolean;
+  termsAcceptedAt?: string;
+  termsVersion?: string;
 }
 
 /**
@@ -558,6 +561,20 @@ export async function syncUserProfile(data: { clerkId?: string; email: string; f
     return await res.json();
   } catch (err: any) {
     return { success: false, message: err.message };
+  }
+}
+
+export async function acceptCurrentTerms(): Promise<{ success: boolean; message?: string; user?: Pick<AuthMeUser, 'termsRequired' | 'termsAcceptedAt' | 'termsVersion'> }> {
+  try {
+    const headers = await getAuthHeaders();
+    const res = await apiFetch('/api/me/terms-acceptance', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ accepted: true }),
+    });
+    return await res.json();
+  } catch (err: any) {
+    return { success: false, message: err.message || 'Terms acceptance could not be saved. Please try again.' };
   }
 }
 

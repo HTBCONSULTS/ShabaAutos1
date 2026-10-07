@@ -74,6 +74,7 @@ export class SqliteUserRepository implements IUserRepository {
     phone?: string;
     avatarUrl?: string;
     role?: 'customer' | 'staff' | 'admin';
+    requireTermsAcceptance?: boolean;
   }): Promise<User> {
     const existing = await this.findByClerkId(data.clerkId) || await this.findByEmail(data.email);
     const now = new Date().toISOString();
@@ -119,14 +120,15 @@ export class SqliteUserRepository implements IUserRepository {
       role: data.role || 'customer',
       status: 'active',
       avatarUrl: data.avatarUrl,
+      termsRequired: data.requireTermsAcceptance ?? true,
       createdAt: now,
       updatedAt: now,
     };
 
     this.db
       .prepare(
-        `INSERT INTO users (id, clerk_id, email, password_hash, full_name, phone, role, status, avatar_url, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        `INSERT INTO users (id, clerk_id, email, password_hash, full_name, phone, role, status, avatar_url, terms_required, terms_accepted_at, terms_version, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
       .run(
         newUser.id,
@@ -138,6 +140,9 @@ export class SqliteUserRepository implements IUserRepository {
         newUser.role,
         newUser.status,
         newUser.avatarUrl || null,
+        newUser.termsRequired ? 1 : 0,
+        newUser.termsAcceptedAt || null,
+        newUser.termsVersion || null,
         newUser.createdAt,
         newUser.updatedAt
       );
@@ -156,13 +161,14 @@ export class SqliteUserRepository implements IUserRepository {
     const newUser: User = {
       id,
       ...user,
+      termsRequired: user.termsRequired ?? false,
       createdAt: now,
       updatedAt: now,
     };
     this.db
       .prepare(
-        `INSERT INTO users (id, email, password_hash, full_name, phone, role, status, avatar_url, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        `INSERT INTO users (id, email, password_hash, full_name, phone, role, status, avatar_url, terms_required, terms_accepted_at, terms_version, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
       .run(
         newUser.id,
@@ -173,6 +179,9 @@ export class SqliteUserRepository implements IUserRepository {
         newUser.role,
         newUser.status,
         newUser.avatarUrl || null,
+        newUser.termsRequired ? 1 : 0,
+        newUser.termsAcceptedAt || null,
+        newUser.termsVersion || null,
         newUser.createdAt,
         newUser.updatedAt
       );
@@ -189,7 +198,7 @@ export class SqliteUserRepository implements IUserRepository {
     };
     this.db
       .prepare(
-        `UPDATE users SET email = ?, full_name = ?, phone = ?, role = ?, status = ?, avatar_url = ?, updated_at = ? WHERE id = ?`
+        `UPDATE users SET email = ?, full_name = ?, phone = ?, role = ?, status = ?, avatar_url = ?, terms_required = ?, terms_accepted_at = ?, terms_version = ?, updated_at = ? WHERE id = ?`
       )
       .run(
         updated.email,
@@ -198,6 +207,9 @@ export class SqliteUserRepository implements IUserRepository {
         updated.role,
         updated.status,
         updated.avatarUrl || null,
+        updated.termsRequired ? 1 : 0,
+        updated.termsAcceptedAt || null,
+        updated.termsVersion || null,
         updated.updatedAt,
         id
       );
@@ -220,6 +232,9 @@ export class SqliteUserRepository implements IUserRepository {
       role: row.role,
       status: row.status,
       avatarUrl: row.avatar_url || undefined,
+      termsRequired: Boolean(row.terms_required),
+      termsAcceptedAt: row.terms_accepted_at || undefined,
+      termsVersion: row.terms_version || undefined,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };
