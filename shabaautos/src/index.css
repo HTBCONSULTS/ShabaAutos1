@@ -1390,6 +1390,55 @@ html.dark { color-scheme: dark; }
   border-color: rgba(252, 165, 165, 0.32) !important;
 }
 
+/* The operations workspace has its own pale canvas; make it follow the
+   persisted site theme while reusing shared dark card and text tokens. */
+.dark .operations-dashboard {
+  background-color: #0c120f !important;
+  color: #e7ede8;
+}
+
+.dark .operations-dashboard [class~="bg-white"][class~="text-[#123f2a]"] {
+  background-color: #f1f5f2 !important;
+  color: #123f2a !important;
+}
+
+.dark .operations-dashboard [class~="bg-emerald-50/40"],
+.dark .operations-dashboard [class~="bg-emerald-50/60"] {
+  background-color: rgba(16, 94, 58, 0.2) !important;
+}
+
+.dark .operations-dashboard .bg-blue-50 {
+  background-color: rgba(30, 64, 175, 0.22) !important;
+}
+
+.dark .operations-dashboard .border-blue-200 {
+  border-color: rgba(147, 197, 253, 0.3) !important;
+}
+
+.dark .operations-dashboard .text-blue-900 {
+  color: #bfdbfe !important;
+}
+
+.dark .operations-dashboard .text-red-900,
+.dark .operations-dashboard .text-red-800,
+.dark .operations-dashboard .text-red-700,
+.dark .operations-dashboard .text-red-600 {
+  color: #fca5a5 !important;
+}
+
+.dark .operations-dashboard [class~="hover:bg-slate-50"]:hover,
+.dark .operations-dashboard [class~="hover:bg-slate-50/70"]:hover {
+  background-color: #1b241f !important;
+}
+
+.dark .operations-dashboard [class~="hover:bg-red-50"]:hover {
+  background-color: rgba(127, 29, 29, 0.3) !important;
+}
+
+.dark .operations-dashboard [class~="border-slate-200/80"] {
+  border-color: rgba(148, 163, 184, 0.2) !important;
+}
+
 /* Desktop navigation: seat the brand mark against the top edge of the bar
    so the apex of the mark meets the header instead of floating in the middle. */
 .shabaautos-navbar .shabaautos-brand {
