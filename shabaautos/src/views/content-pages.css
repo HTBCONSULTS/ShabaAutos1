@@ -25,6 +25,51 @@
 .content-page-hero .content-page-wrap { position: relative; z-index: 1; }
 .about-page .content-page-hero { isolation: isolate; background: radial-gradient(circle at 86% 16%, rgba(21, 128, 71, .13), transparent 24rem), linear-gradient(120deg, #f1f7f2, #fbfcfb 68%); }
 .about-page .content-page-hero::before { position: absolute; z-index: 0; top: 0; right: 0; bottom: 0; width: min(64%, 820px); background-image: linear-gradient(90deg, rgba(241, 247, 242, 0) 0%, rgba(241, 247, 242, .08) 100%), url('../assets/images/bmw_silver_coupe_1789257180258.jpg'); background-position: 52% 58%; background-size: cover; content: ""; opacity: .78; pointer-events: none; mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, .45) 22%, #000 48%); }
+.home-desktop-hero.shaba-about-style-hero::before,
+.rent-screen > section.shaba-about-style-hero:not(.rent-mobile-page)::before {
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(64%, 820px);
+  background-image: linear-gradient(90deg, rgba(241, 247, 242, 0) 0%, rgba(241, 247, 242, .08) 100%), url('../assets/images/bmw_silver_coupe_1789257180258.jpg');
+  background-position: 52% 58%;
+  background-size: cover;
+  content: "";
+  opacity: .78;
+  pointer-events: none;
+  mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, .45) 22%, #000 48%);
+}
+.home-mobile-hero.shaba-about-style-hero::before,
+.rent-mobile-page.shaba-about-style-hero::before {
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  right: 0;
+  width: 72%;
+  height: 22rem;
+  background-image: linear-gradient(90deg, rgba(241, 247, 242, 0) 0%, rgba(241, 247, 242, .08) 100%), url('../assets/images/bmw_silver_coupe_1789257180258.jpg');
+  background-position: 52% 56%;
+  background-size: cover;
+  content: "";
+  opacity: .42;
+  pointer-events: none;
+  mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, .25) 28%, #000 70%);
+}
+.home-mobile-hero.shaba-about-style-hero > *,
+.rent-mobile-page.shaba-about-style-hero > * { position: relative; z-index: 1; }
+.dark .home-desktop-hero.shaba-about-style-hero::before,
+.dark .rent-screen > section.shaba-about-style-hero:not(.rent-mobile-page)::before,
+.dark .home-mobile-hero.shaba-about-style-hero::before,
+.dark .rent-mobile-page.shaba-about-style-hero::before {
+  background-image: linear-gradient(90deg, rgba(16, 25, 20, 0) 0%, rgba(13, 20, 16, .12) 100%), url('../assets/images/bmw_silver_coupe_1789257180258.jpg');
+  filter: brightness(.72) saturate(.85);
+}
+.dark .home-desktop-hero.shaba-about-style-hero::before,
+.dark .rent-screen > section.shaba-about-style-hero:not(.rent-mobile-page)::before { opacity: .48; }
+.dark .home-mobile-hero.shaba-about-style-hero::before,
+.dark .rent-mobile-page.shaba-about-style-hero::before { opacity: .26; }
 .content-breadcrumbs { display: flex; align-items: center; gap: .65rem; min-height: 2rem; margin-bottom: 1.8rem; color: #6c7b71; font-size: .78rem; font-weight: 700; }
 .content-breadcrumbs a { color: inherit; text-decoration: none; }
 .content-breadcrumb-home, .content-breadcrumb-back { display: inline-flex; align-items: center; gap: .35rem; }

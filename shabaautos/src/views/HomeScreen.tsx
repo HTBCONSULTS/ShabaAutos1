@@ -260,18 +260,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       </section>
       {/* Hero Section matching web11.png */}
       <section className="home-desktop-hero shaba-about-style-hero relative z-30 bg-gradient-to-b from-[#eef3f0] to-[#f4f7f5] pt-10 sm:pt-14 lg:pt-16 pb-10 sm:pb-12 lg:pb-14 border-b border-slate-200/80">
-        {/* Background Scenic Landscape & Ambient Lights (contained with overflow-hidden) */}
+        {/* Ambient glow; the shared About-style car photo is layered behind the hero. */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
           <div className="shaba-ambient shaba-ambient--one" aria-hidden="true" />
           <div className="shaba-ambient shaba-ambient--two" aria-hidden="true" />
-          <div className="absolute inset-0 opacity-25">
-            <img
-              src="https://images.unsplash.com/photo-1477959858617-67f30bc75b82?auto=format&fit=crop&w=2000&q=80"
-              alt="Scenic City Waterfront"
-              className="w-full h-full object-cover object-center mix-blend-multiply"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#f4f7f5] via-[#f4f7f5]/80 to-transparent" />
-          </div>
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
