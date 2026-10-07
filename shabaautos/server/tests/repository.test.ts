@@ -30,6 +30,37 @@ async function runTests() {
   assert.ok(foundUser, 'User must be found case-insensitively');
   console.log('✓ Test 2: User creation & lookup passed');
 
+  const pendingTermsUser = await service.users.upsertClerkUser({
+    clerkId: 'user_terms_acceptance_test',
+    email: 'terms-user@example.com',
+    fullName: 'Terms User',
+  });
+  assert.equal(pendingTermsUser.termsRequired, true, 'New identity profiles must require terms acceptance');
+  const acceptedAt = '2026-10-07T09:00:00.000Z';
+  const acceptedTermsUser = await service.users.update(pendingTermsUser.id, {
+    termsRequired: false,
+    termsAcceptedAt: acceptedAt,
+    termsVersion: 'shabaautos-terms-v1',
+  });
+  assert.equal(acceptedTermsUser?.termsRequired, false);
+  assert.equal(acceptedTermsUser?.termsAcceptedAt, acceptedAt);
+  assert.equal(acceptedTermsUser?.termsVersion, 'shabaautos-terms-v1');
+  const syncedTermsUser = await service.users.upsertClerkUser({
+    clerkId: 'user_terms_acceptance_test',
+    email: 'terms-user@example.com',
+    fullName: 'Terms User Updated',
+  });
+  assert.equal(syncedTermsUser.termsAcceptedAt, acceptedAt, 'Profile sync must preserve consent history');
+  assert.equal(syncedTermsUser.termsRequired, false, 'Profile sync must not re-lock an accepted account');
+  const demoProfile = await service.users.upsertClerkUser({
+    clerkId: 'user_terms_demo_test',
+    email: 'demo-terms@example.com',
+    fullName: 'Demo Terms User',
+    requireTermsAcceptance: false,
+  });
+  assert.equal(demoProfile.termsRequired, false, 'Demo personas remain available without signup consent');
+  console.log('✓ Test 2b: Terms requirement and acceptance persistence passed');
+
   // Test 3: Vehicles & Indexed Queries
   const vehicle = await service.vehicles.create(
     {

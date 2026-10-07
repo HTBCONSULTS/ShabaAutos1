@@ -13,6 +13,9 @@ export interface User {
   role: UserRole;
   status: UserStatus;
   avatarUrl?: string;
+  termsRequired?: boolean;
+  termsAcceptedAt?: string;
+  termsVersion?: string;
   createdAt: string;
   updatedAt: string;
 }

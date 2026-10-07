@@ -25,6 +25,7 @@ import { AboutPage } from './views/AboutPage';
 import { FAQPage } from './views/FAQPage';
 import { PoliciesLegalPage } from './views/PoliciesLegalPage';
 import { PolicyDocumentPage } from './views/PolicyDocumentPage';
+import { TermsAcceptanceGate } from './views/TermsAcceptanceGate';
 import { pathForScreen, screenForPath } from './utils/contentRoutes';
 import './views/content-pages.css';
 
@@ -41,7 +42,15 @@ export default function App() {
   const [savedCarIds, setSavedCarIds] = useState<string[]>([]);
   const [compareCount, setCompareCount] = useState(0);
   const [savedError, setSavedError] = useState('');
-  const { user, isSignedIn, isLoaded } = useAuthUser();
+  const {
+    user,
+    isSignedIn,
+    isLoaded,
+    accountProfileStatus,
+    refreshAccountProfile,
+    acceptTermsAndConditions,
+    signOut,
+  } = useAuthUser();
 
   useEffect(() => {
     const syncScreenFromLocation = () => {
@@ -152,6 +161,28 @@ export default function App() {
     window.history.replaceState(null, '', `/?carId=${encodeURIComponent(carId)}`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  if (isSignedIn && isLoaded && accountProfileStatus !== 'ready') {
+    return (
+      <TermsAcceptanceGate
+        status={accountProfileStatus}
+        onAccept={acceptTermsAndConditions}
+        onRetry={refreshAccountProfile}
+        onSignOut={signOut}
+      />
+    );
+  }
+
+  if (isSignedIn && user?.termsRequired && !user.termsAcceptedAt) {
+    return (
+      <TermsAcceptanceGate
+        status="required"
+        onAccept={acceptTermsAndConditions}
+        onRetry={refreshAccountProfile}
+        onSignOut={signOut}
+      />
+    );
+  }
 
   return (
     <div className="w-full max-w-full min-w-0 overflow-x-clip min-h-screen flex flex-col bg-[#f8f9fa] text-gray-900 font-sans antialiased selection:bg-emerald-100 selection:text-emerald-900">

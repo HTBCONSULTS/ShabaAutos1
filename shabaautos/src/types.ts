@@ -145,4 +145,7 @@ export interface AppUser {
   phone?: string;
   role: AppUserRole;
   avatarUrl?: string;
+  termsRequired?: boolean;
+  termsAcceptedAt?: string;
+  termsVersion?: string;
 }

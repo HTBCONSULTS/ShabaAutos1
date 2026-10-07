@@ -13,6 +13,9 @@ CREATE TABLE IF NOT EXISTS users (
   role VARCHAR(32) NOT NULL CHECK(role IN ('customer', 'staff', 'admin')),
   status VARCHAR(32) NOT NULL CHECK(status IN ('active', 'suspended', 'pending')),
   avatar_url TEXT,
+  terms_required BOOLEAN NOT NULL DEFAULT FALSE,
+  terms_accepted_at TIMESTAMPTZ,
+  terms_version VARCHAR(64),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -23,6 +26,10 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS clerk_id VARCHAR(255);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_users_clerk_id
   ON users(clerk_id)
   WHERE clerk_id IS NOT NULL;
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS terms_required BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS terms_accepted_at TIMESTAMPTZ;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS terms_version VARCHAR(64);
 
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);

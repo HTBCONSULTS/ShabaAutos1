@@ -72,6 +72,7 @@ export interface IUserRepository {
     phone?: string;
     avatarUrl?: string;
     role?: 'customer' | 'staff' | 'admin';
+    requireTermsAcceptance?: boolean;
   }): Promise<User>;
   create(user: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User>;
   update(id: string, updates: Partial<User>): Promise<User | null>;
