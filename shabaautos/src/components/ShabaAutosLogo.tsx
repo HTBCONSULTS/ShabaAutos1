@@ -8,9 +8,9 @@ interface ShabaAutosLogoProps {
 }
 
 const SIZE_STYLES = {
-  sm: 'h-12',
-  md: 'h-14 sm:h-16',
-  lg: 'h-20 sm:h-24',
+  sm: 'h-12 w-12',
+  md: 'h-14 w-14 sm:h-16 sm:w-16',
+  lg: 'h-20 w-20 sm:h-24 sm:w-24',
 } as const;
 
 export const ShabaAutosLogo: React.FC<ShabaAutosLogoProps> = ({
@@ -18,8 +18,8 @@ export const ShabaAutosLogo: React.FC<ShabaAutosLogoProps> = ({
   size = 'md',
   variant = 'light',
 }) => {
-  const heightClass = SIZE_STYLES[size] ?? SIZE_STYLES.md;
-  const imageClass = `shaba-logo-img ${heightClass} block w-auto rounded-full object-contain`;
+  const badgeClass = SIZE_STYLES[size] ?? SIZE_STYLES.md;
+  const imageClass = 'shaba-logo-img block h-auto w-[82%] max-h-[78%] object-contain';
 
   return (
     <span
@@ -27,14 +27,25 @@ export const ShabaAutosLogo: React.FC<ShabaAutosLogoProps> = ({
         variant === 'dark' ? 'shaba-logo--on-dark' : ''
       } ${className}`}
     >
-      <img
-        src="/assets/shabaautos-logo.jpeg"
-        alt="ShabaAutos logo"
-        width={720}
-        height={720}
-        loading="eager"
-        className={imageClass}
-      />
+      <span className={`shaba-logo-badge ${badgeClass}`}>
+        <img
+          src="/assets/shabaautos-logo-light.png"
+          alt="ShabaAutos logo"
+          width={560}
+          height={430}
+          loading="eager"
+          className={`${imageClass} shaba-logo-img--light`}
+        />
+        <img
+          src="/assets/shabaautos-logo-dark.png"
+          alt=""
+          aria-hidden="true"
+          width={560}
+          height={430}
+          loading="eager"
+          className={`${imageClass} shaba-logo-img--dark`}
+        />
+      </span>
     </span>
   );
 };
