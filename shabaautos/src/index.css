@@ -1210,13 +1210,6 @@ html.dark { color-scheme: dark; }
 }
 .dark .bg-white.hover\:bg-slate-100:hover { background-color: #f1f5f2 !important; }
 
-/* Brand lockup: swap the light/dark artwork with the active theme. */
-.shaba-logo-img--dark { display: none; }
-.dark .shaba-logo-img--light { display: none; }
-.dark .shaba-logo-img--dark { display: block; }
-.shaba-logo--on-dark .shaba-logo-img--light { display: none; }
-.shaba-logo--on-dark .shaba-logo-img--dark { display: block; }
-
 /* ------------------------------------------------------------------
    Dark mode contrast: brand greens are tuned for light surfaces, so on
    dark surfaces they need a lighter tint to stay readable. Elements that

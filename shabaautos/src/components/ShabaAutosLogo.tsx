@@ -19,7 +19,7 @@ export const ShabaAutosLogo: React.FC<ShabaAutosLogoProps> = ({
   variant = 'light',
 }) => {
   const heightClass = SIZE_STYLES[size] ?? SIZE_STYLES.md;
-  const imageClass = `shaba-logo-img ${heightClass} block w-auto object-contain`;
+  const imageClass = `shaba-logo-img ${heightClass} block w-auto rounded-full object-contain`;
 
   return (
     <span
@@ -28,21 +28,12 @@ export const ShabaAutosLogo: React.FC<ShabaAutosLogoProps> = ({
       } ${className}`}
     >
       <img
-        src="/assets/shabaautos-logo-light.png"
-        alt="ShabaAutos — Drive a better tomorrow"
-        width={560}
-        height={386}
+        src="/assets/shabaautos-logo.jpeg"
+        alt="ShabaAutos logo"
+        width={720}
+        height={720}
         loading="eager"
-        className={`${imageClass} shaba-logo-img--light`}
-      />
-      <img
-        src="/assets/shabaautos-logo-dark.png"
-        alt=""
-        aria-hidden="true"
-        width={560}
-        height={386}
-        loading="eager"
-        className={`${imageClass} shaba-logo-img--dark`}
+        className={imageClass}
       />
     </span>
   );
